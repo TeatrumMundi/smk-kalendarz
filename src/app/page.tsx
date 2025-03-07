@@ -14,6 +14,7 @@ import { exportToPDF } from "@/app/utils/exportToPDF";
 import { calculateDays } from "@/app/utils/calculateDays";
 import { deletePeriod } from "@/app/utils/deletePeriod";
 import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 
 // Modern color palette for legend
@@ -313,6 +314,7 @@ export default function Home() {
                     </button>
                   </div>
               ))}
+              <SpeedInsights/>
               <Analytics />
             </div>
         ) : (
