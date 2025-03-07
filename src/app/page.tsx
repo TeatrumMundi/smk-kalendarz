@@ -13,6 +13,8 @@ import { PeriodStats } from '@/app/components/PeriodStats';
 import { exportToPDF } from "@/app/utils/exportToPDF";
 import { calculateDays } from "@/app/utils/calculateDays";
 import { deletePeriod } from "@/app/utils/deletePeriod";
+import { Analytics } from '@vercel/analytics/react';
+
 
 // Modern color palette for legend
 const legendItems = [
@@ -311,6 +313,7 @@ export default function Home() {
                     </button>
                   </div>
               ))}
+              <Analytics />
             </div>
         ) : (
             <div className="mt-6 text-gray-400">
