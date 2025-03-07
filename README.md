@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Calendar and Period Management Application
 
-## Getting Started
+This is a React-based application designed to manage and visualize periods (e.g., vacations, internships, courses) in a calendar format. It allows users to input personal information, add and delete periods, and visualize them on a calendar with color-coded legends. The application also supports exporting the calendar to a PDF file.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Personal Information Input**: Users can input their first name and last name.
+- **Period Management**: Users can add, delete, and manage multiple periods with start and end dates.
+- **Calendar Visualization**: Periods are displayed on a calendar with color-coded legends for different types of periods (e.g., vacation, internships, courses).
+- **Working Days Calculation**: The application calculates the number of working days for each month, excluding weekends and Polish holidays.
+- **PDF Export**: Users can export the calendar with their personal information to a PDF file.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Technologies Used
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **React**: A JavaScript library for building user interfaces.
+- **Tailwind CSS**: A utility-first CSS framework for styling the application.
+- **Date Utilities**: Custom utility functions for date manipulation, validation, and working day calculations.
+- **PDF Export**: A utility function to export the calendar to a PDF file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Installation
 
-## Learn More
+To run this project locally, follow these steps:
 
-To learn more about Next.js, take a look at the following resources:
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/your-username/your-repo-name.git
+   cd your-repo-name
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Install dependencies:**
+    ```bash
+   npm install
+3. **Run the development server:**
+    ```bash
+   npm run dev
+4. **Open your browser and navigate to: http://localhost:3000**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Usage
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 1. Input Personal Information:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* Enter your first name and last name in the input fields provided at the top of the page.
+
+### 2. Add Periods:
+
+*    Click the + button to add a new period.
+* For each period, enter the start and end dates in the format DD/MM/RRRR.
+
+### 3. Delete Periods
+
+*    To delete a period, click the × button next to the period you want to remove. Note that you cannot delete the last remaining period.
+
+### 4. Visualize Periods on the Calendar
+
+* Once valid periods are entered, the calendar will display the periods.
+
+* Use the legend to color-code different types of periods (e.g., vacation, internships, courses).
+
+* Click on a day in the calendar to assign a period type to it.
+
+### 5. Export to PDF
+
+*    Click the "Zapisz PDF" button at the bottom right of the page to export the calendar with your personal information to a PDF file.
+
+## Code Structure:
+
+* page.tsx: The main component that handles the UI, state management, and logic for the application.
+
+* /utils: Contains utility functions for date manipulation, validation, working day calculations, and PDF export.
+
+* /components: Contains reusable components like ErrorPopup and PeriodStats.
+
+* /types: Contains TypeScript type definitions for periods and colored ranges.
+
+## Customization:
+
+* Add New Period Types: To add new period types, update the legendItems array in page.tsx with the desired color and label.
+
+* Modify Date Format: If you need to change the date format, update the formatDate function in the handleDayClick function.
+
+### Contributing:
+
+Contributions are welcome! If you have any suggestions, bug reports, or feature requests, please open an issue or submit a pull request.
