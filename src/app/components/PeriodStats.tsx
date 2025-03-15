@@ -1,7 +1,6 @@
 ﻿import { useState } from 'react';
 import { getWorkingDaysInRange } from '@/app/utils/getWorkingDaysInRange';
 
-
 interface ColoredRange {
     start: string;
     end: string;
@@ -13,7 +12,7 @@ interface PeriodStatsProps {
     coloredRanges: ColoredRange[];
     periodIndex: string;
     periods: Array<{ start: string; end: string; }>;
-    selectedType?: string | null; // Changed from string | undefined to string | null
+    selectedType?: string | null;
     onSelectType: (type: string | null) => void;
 }
 
@@ -61,7 +60,14 @@ export const PeriodStats = ({
         const basicPeriodLine = `Okres podstawowy ilość dni: ${basicPeriodDays}`;
         const rangesStats = Object.entries(groupedRanges)
             .map(([type, ranges]) => {
-                const dateRanges = ranges.map(range => `${range.start}-${range.end}`).join(', ');
+                const dateRanges = ranges.map(range => {
+                    const startDate = new Date(range.start);
+                    const endDate = new Date(range.end);
+                    if (startDate.toDateString() === endDate.toDateString()) {
+                        return `${range.start}`;
+                    }
+                    return `${range.start}-${range.end}`;
+                }).join(', ');
                 const totalWorkingDays = ranges.reduce((sum, range) =>
                     sum + getWorkingDaysInRange(range.start, range.end), 0
                 );
@@ -119,7 +125,21 @@ export const PeriodStats = ({
                 const totalWorkingDays = ranges.reduce((sum, range) =>
                     sum + getWorkingDaysInRange(range.start, range.end), 0
                 );
-                const dateRangesString = ranges.map(range => `${range.start}-${range.end}`).join(', ');
+                const dateRangesString = ranges.map(range => {
+                    // Parse the dates correctly using the separator
+                    const separator = range.start.includes('/') ? '/' : '.';
+                    const [startDay, startMonth, startYear] = range.start.split(separator).map(Number);
+                    const [endDay, endMonth, endYear] = range.end.split(separator).map(Number);
+                    
+                    const startDate = new Date(startYear, startMonth - 1, startDay);
+                    const endDate = new Date(endYear, endMonth - 1, endDay);
+                    
+                    // Compare dates using getTime() for accurate comparison
+                    if (startDate.getTime() === endDate.getTime()) {
+                        return range.start;
+                    }
+                    return `${range.start}-${range.end}`;
+                }).join(', ');
                 const isSelected = selectedType === type;
 
                 return (
