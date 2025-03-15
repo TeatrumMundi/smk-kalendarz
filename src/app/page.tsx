@@ -53,16 +53,69 @@ export default function Home() {
     setPeriods([...periods, { start: "", end: "" }]);
     setDisplayPeriods([...displayPeriods, { start: "", end: "" }]);
   };
-
   const handleDeletePeriod = (indexToDelete: number) => {
     deletePeriod(indexToDelete, periods, setPeriods, displayPeriods, setDisplayPeriods, coloredRanges, setColoredRanges);
   };
-
   const isDateInColoredRange = (date: Date, month: number, year: number) => {
+    // First check if the date is in the correct month and year
     if (date.getMonth() !== month || date.getFullYear() !== year) return null;
+
+    // Then check if it falls within any of the colored ranges
     const matchingRanges = coloredRanges.filter(range => isDateInRange(date, range));
     return matchingRanges.length > 0 ? matchingRanges[matchingRanges.length - 1] : null;
   };
+
+  // Add this helper function to properly parse dates from the DD/MM/YYYY format
+  // Updated parseDate function to handle both YYYY-MM-DD and DD/MM/YYYY formats
+  const parseDate = (dateString: string): Date | null => {
+    if (!dateString || dateString.trim() === '') return null;
+
+    // Check if the date is in YYYY-MM-DD format
+    if (dateString.includes('-')) {
+      const [year, month, day] = dateString.split('-').map(part => parseInt(part, 10));
+      if (isNaN(year) || isNaN(month) || isNaN(day)) return null;
+      return new Date(year, month - 1, day);
+    }
+    // Check if the date is in DD/MM/YYYY format
+    else if (dateString.includes('/') || dateString.includes('.')) {
+      const parts = dateString.split(/[\/.]/).map(part => parseInt(part, 10));
+      if (parts.length !== 3 || parts.some(isNaN)) return null;
+      const [day, month, year] = parts;
+      return new Date(year, month - 1, day);
+    }
+
+    return null; // Unrecognized format
+  };
+
+
+// Improved function to check if a date is within the base period
+// Improved function to check if a date is within the base period
+  const isDateInBasePeriod = (date: Date, periodIndexStr: string): boolean => {
+    const periodIndex = parseInt(periodIndexStr);
+
+    // Remove all these debug logs
+    if (periodIndex < 0 || periodIndex >= periods.length) {
+      return false;
+    }
+
+    const period = periods[periodIndex];
+    if (!period || !period.start || !period.end) {
+      return false;
+    }
+
+    const startDate = parseDate(period.start);
+    const endDate = parseDate(period.end);
+
+    if (!startDate || !endDate) {
+      return false;
+    }
+
+    // Set hours to 0 for all dates to compare just the dates
+    const compareDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    return compareDate >= startDate && compareDate <= endDate;
+  };
+
 
   const handleDayClick = (date: Date) => {
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
@@ -282,25 +335,31 @@ export default function Home() {
                                 const isHoliday = currentDate ? isPolishHoliday(currentDate) : false;
                                 const coloredRange = currentDate ? isDateInColoredRange(currentDate, getMonthNumber(month.name), month.year) : null;
 
+                                // Only check if we have a valid date
+                                const isInBasePeriod = currentDate ? isDateInBasePeriod(currentDate, periodIndex) : false;
+
                                 return (
                                     <div
                                         key={dayIndex}
-                                        className={`h-8 text-xs border p-0.5 rounded-lg flex justify-center items-center cursor-pointer transition-all
-                      ${isWeekend ? 'bg-red-900' : ''}
-                      ${isHoliday ? 'bg-orange-900' : ''}
-                      ${coloredRange ? coloredRange.color : ''}
-                      ${selectedLegendType && 'hover:bg-gray-700'}
-                      ${rangeSelection.start && currentDate?.getTime() === rangeSelection.start.getTime() ? 'bg-gray-600' : ''}`}
-                                        onClick={() => currentDate && handleDayClick(currentDate)}
+                                        className={`h-8 text-xs border p-0.5 rounded-lg flex justify-center items-center
+        ${isWeekend ? 'bg-red-900' : ''}
+        ${isHoliday ? 'bg-orange-900' : ''}
+        ${coloredRange ? coloredRange.color : ''}
+        ${!isInBasePeriod ? 'bg-gray-600' : ''}
+        ${isInBasePeriod && selectedLegendType ? 'hover:bg-gray-700 cursor-pointer' : ''}
+        ${rangeSelection.start && currentDate?.getTime() === rangeSelection.start.getTime() ? 'bg-gray-600' : ''}
+        transition-all`}
+                                        onClick={() => currentDate && isInBasePeriod && handleDayClick(currentDate)}
                                     >
                                       {day.day && (
-                                          <div className={`${(isWeekend || isHoliday) ? 'text-red-400' : 'text-gray-400'}`}>
+                                          <div className={`${(isWeekend || isHoliday) ? 'text-red-400' : !isInBasePeriod ? 'text-gray-500' : 'text-gray-400'}`}>
                                             {day.day}
                                           </div>
                                       )}
                                     </div>
                                 );
                               })}
+
                             </div>
                           </div>
                       ))}

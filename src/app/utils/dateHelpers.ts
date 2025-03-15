@@ -1,19 +1,15 @@
-﻿export const isDateInRange = (date: Date, range: { start: string, end: string }) => {
-    const parseDate = (dateStr: string) => {
-        const delimiter = dateStr.includes('.') ? '.' : dateStr.includes('/') ? '/' : null;
-        if (!delimiter) return null;
+﻿export const isDateInRange = (date: Date, range: { start: string; end: string }): boolean => {
+    // Parse the range start and end dates
+    const [startDay, startMonth, startYear] = range.start.split(/[\/.]/).map(Number);
+    const [endDay, endMonth, endYear] = range.end.split(/[\/.]/).map(Number);
 
-        const [day, month, year] = dateStr.split(delimiter).map(Number);
-        return new Date(year, month - 1, day);
-    };
+    // Create Date objects for comparison
+    const rangeStart = new Date(startYear, startMonth - 1, startDay);
+    const rangeEnd = new Date(endYear, endMonth - 1, endDay);
 
-    const rangeStart = parseDate(range.start);
-    const rangeEnd = parseDate(range.end);
+    // Reset time components for accurate date comparison
+    const compareDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-    if (!rangeStart || !rangeEnd) {
-        console.error("Invalid date format. Expected '.' or '/' as separators.");
-        return false;
-    }
-
-    return date >= rangeStart && date <= rangeEnd;
+    // Check if the date is within the range (inclusive)
+    return compareDate >= rangeStart && compareDate <= rangeEnd;
 };
