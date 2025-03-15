@@ -49,6 +49,7 @@ export default function Home() {
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const [validPeriods, setValidPeriods] = useState<Period[]>([]);
 
+
   const addNewPeriod = () => {
     setPeriods([...periods, { start: "", end: "" }]);
     setDisplayPeriods([...displayPeriods, { start: "", end: "" }]);
@@ -87,9 +88,6 @@ export default function Home() {
     return null; // Unrecognized format
   };
 
-
-// Improved function to check if a date is within the base period
-// Improved function to check if a date is within the base period
   const isDateInBasePeriod = (date: Date, periodIndexStr: string): boolean => {
     const periodIndex = parseInt(periodIndexStr);
 
@@ -115,7 +113,6 @@ export default function Home() {
 
     return compareDate >= startDate && compareDate <= endDate;
   };
-
 
   const handleDayClick = (date: Date) => {
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
@@ -342,13 +339,13 @@ export default function Home() {
                                     <div
                                         key={dayIndex}
                                         className={`h-8 text-xs border p-0.5 rounded-lg flex justify-center items-center
-        ${isWeekend ? 'bg-red-900' : ''}
-        ${isHoliday ? 'bg-orange-900' : ''}
-        ${coloredRange ? coloredRange.color : ''}
-        ${!isInBasePeriod ? 'bg-gray-600' : ''}
-        ${isInBasePeriod && selectedLegendType ? 'hover:bg-gray-700 cursor-pointer' : ''}
-        ${rangeSelection.start && currentDate?.getTime() === rangeSelection.start.getTime() ? 'bg-gray-600' : ''}
-        transition-all`}
+                                        ${isWeekend ? 'bg-red-900' : ''}
+                                        ${isHoliday ? 'bg-orange-900' : ''}
+                                        ${coloredRange ? `${coloredRange.color} cursor-pointer hover:opacity-50` : ''}
+                                        ${!isInBasePeriod ? 'bg-gray-600' : ''}
+                                        ${isInBasePeriod && selectedLegendType ? 'hover:opacity-50 cursor-pointer' : ''}
+                                        ${rangeSelection.start && currentDate?.getTime() === rangeSelection.start.getTime() ? 'bg-gray-600' : ''}
+                                        transition-all`}
                                         onClick={() => currentDate && isInBasePeriod && handleDayClick(currentDate)}
                                     >
                                       {day.day && (
