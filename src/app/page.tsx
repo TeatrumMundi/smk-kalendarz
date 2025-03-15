@@ -15,6 +15,7 @@ import { calculateDays } from "@/app/utils/calculateDays";
 import { deletePeriod } from "@/app/utils/deletePeriod";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { handleDayClick as handleDayClickUtil } from "@/app/utils/handleDayClick";
 
 
 // Modern color palette for legend
@@ -113,36 +114,21 @@ export default function Home() {
   };
 
   const handleDayClick = (date: Date) => {
-    const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-    const isHoliday = isPolishHoliday(date);
-    if (isWeekend || isHoliday) return;
+    const newSelectedType = handleDayClickUtil(
+        date,
+        coloredRanges,
+        setColoredRanges,
+        selectedLegendType,
+        rangeSelection,
+        setRangeSelection,
+        legendItems
+    );
 
-    const existingRangeIndex = coloredRanges.findIndex(range => isDateInRange(date, range));
-    if (existingRangeIndex !== -1) {
-      const newRanges = [...coloredRanges];
-      newRanges.splice(existingRangeIndex, 1);
-      setColoredRanges(newRanges);
-      return;
-    }
+    // If the utility function returns null, don't change the selected type
+    if (newSelectedType === null) return;
 
-    if (!selectedLegendType) return;
-
-    if (!rangeSelection.start) {
-      setRangeSelection({ start: date, end: null });
-    } else {
-      const start = rangeSelection.start;
-      const end = date;
-      const [finalStart, finalEnd] = start <= end ? [start, end] : [end, start];
-
-      const formatDate = (d: Date) => d.toLocaleDateString('pl', { day: '2-digit', month: '2-digit', year: 'numeric' });
-
-      const selectedLegendColor = legendItems.find(item => item.label === selectedLegendType)?.color || '';
-      const newRange: ColoredRange = { start: formatDate(finalStart), end: formatDate(finalEnd), type: selectedLegendType, color: selectedLegendColor };
-
-      setColoredRanges([...coloredRanges, newRange]);
-      setRangeSelection({ start: null, end: null });
-      setSelectedLegendType(null);
-    }
+    // Otherwise set it to the returned value (which could be null to reset it)
+    setSelectedLegendType(newSelectedType);
   };
 
   const handlePersonalInfoChange = (field: 'firstName' | 'lastName', value: string) => {
