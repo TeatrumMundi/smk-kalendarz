@@ -164,7 +164,7 @@ export const exportToPDF = async (personalInfo: { firstName: string, lastName: s
         }
 
         // Save the PDF with all pages
-        pdf.save(`kalendarz-${personalInfo.firstName || 'user'}-${personalInfo.lastName || 'calendar'}.pdf`);
+        pdf.save(`${personalInfo.firstName || 'user'}_${personalInfo.lastName || 'calendar'}_SMK.pdf`);
         console.log('PDF exported successfully with multiple pages');
 
     } catch (error) {

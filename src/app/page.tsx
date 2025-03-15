@@ -10,12 +10,13 @@ import { generateCalendarData } from "@/app/utils/generateCalendarData";
 import { isDateInRange } from "@/app/utils/dateHelpers";
 import ErrorPopup from "@/app/components/ErrorPopup";
 import { PeriodStats } from '@/app/components/PeriodStats';
-import { exportToPDF } from "@/app/utils/exportToPDF";
 import { calculateDays } from "@/app/utils/calculateDays";
 import { deletePeriod } from "@/app/utils/deletePeriod";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { handleDayClick as handleDayClickUtil } from "@/app/utils/handleDayClick";
+import ResetButton from "@/app/components/resetButton";
+import ExportPDFButton from "@/app/components/exportPDFButton";
 
 
 // Modern color palette for legend
@@ -40,16 +41,73 @@ const getMonthNumber = (monthName: string): number => {
 };
 
 export default function Home() {
-  const [periods, setPeriods] = useState<Period[]>([{ start: "", end: "" }]);
-  const [selectedLegendType, setSelectedLegendType] = useState<string | null>(null);
-  const [coloredRanges, setColoredRanges] = useState<ColoredRange[]>([]);
+  const [periods, setPeriods] = useState<Period[]>(() => {
+    if (typeof window !== 'undefined') {
+      const savedPeriods = localStorage.getItem('periods');
+      return savedPeriods ? JSON.parse(savedPeriods) : [{ start: "", end: "" }];
+    }
+    return [{ start: "", end: "" }];
+  });
+  const [selectedLegendType, setSelectedLegendType] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      const savedLegendType = localStorage.getItem('selectedLegendType');
+      return savedLegendType ? JSON.parse(savedLegendType) : null;
+    }
+    return null;
+  });
+  const [coloredRanges, setColoredRanges] = useState<ColoredRange[]>(() => {
+    if (typeof window !== 'undefined') {
+      const savedColoredRanges = localStorage.getItem('coloredRanges');
+      return savedColoredRanges ? JSON.parse(savedColoredRanges) : [];
+    }
+    return [];
+  });
+  const [displayPeriods, setDisplayPeriods] = useState<Array<{ start: string, end: string }>>(() => {
+    if (typeof window !== 'undefined') {
+      const savedDisplayPeriods = localStorage.getItem('displayPeriods');
+      return savedDisplayPeriods ? JSON.parse(savedDisplayPeriods) : [{ start: "", end: "" }];
+    }
+    return [{ start: "", end: "" }];
+  });
+  const [personalInfo, setPersonalInfo] = useState({
+    firstName: typeof window !== 'undefined' ? localStorage.getItem('firstName') || "" : "",
+    lastName: typeof window !== 'undefined' ? localStorage.getItem('lastName') || "" : ""
+  });
   const [rangeSelection, setRangeSelection] = useState<{ start: Date | null; end: Date | null }>({ start: null, end: null });
-  const [displayPeriods, setDisplayPeriods] = useState<Array<{ start: string, end: string }>>([{ start: "", end: "" }]);
-  const [personalInfo, setPersonalInfo] = useState({ firstName: "", lastName: "" });
   const [validationResult, setValidationResult] = useState<ValidationResult>({ isValid: true, errorMessage: "" });
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const [validPeriods, setValidPeriods] = useState<Period[]>([]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('periods', JSON.stringify(periods));
+    }
+  }, [periods]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('selectedLegendType', JSON.stringify(selectedLegendType));
+    }
+  }, [selectedLegendType]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('coloredRanges', JSON.stringify(coloredRanges));
+    }
+  }, [coloredRanges]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('displayPeriods', JSON.stringify(displayPeriods));
+    }
+  }, [displayPeriods]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('firstName', personalInfo.firstName);
+      localStorage.setItem('lastName', personalInfo.lastName);
+    }
+  }, [personalInfo]);
 
   const addNewPeriod = () => {
     setPeriods([...periods, { start: "", end: "" }]);
@@ -325,12 +383,12 @@ export default function Home() {
                                         className={`h-8 text-xs border p-0.5 rounded-lg flex justify-center items-center
                                         ${isWeekend ? 'bg-red-900' : ''}
                                         ${isHoliday ? 'bg-orange-900' : ''}
-                                        ${coloredRange ? `${coloredRange.color} cursor-pointer hover:opacity-50` : ''}
+                                        ${coloredRange ? `${coloredRange.color} ${!(isWeekend || isHoliday) ? 'cursor-pointer hover:opacity-50' : ''}` : ''}
                                         ${!isInBasePeriod ? 'bg-gray-600' : ''}
-                                        ${isInBasePeriod && selectedLegendType ? 'hover:opacity-50 cursor-pointer' : ''}
+                                        ${isInBasePeriod && selectedLegendType && !(isWeekend || isHoliday) ? 'hover:opacity-50 cursor-pointer' : ''}
                                         ${rangeSelection.start && currentDate?.getTime() === rangeSelection.start.getTime() ? 'bg-gray-600' : ''}
                                         transition-all`}
-                                        onClick={() => currentDate && isInBasePeriod && handleDayClick(currentDate)}
+                                        onClick={() => currentDate && isInBasePeriod && !(isWeekend || isHoliday) && handleDayClick(currentDate)}
                                     >
                                       {day.day && (
                                           <div className={`${(isWeekend || isHoliday) ? 'text-red-400' : !isInBasePeriod ? 'text-gray-500' : 'text-gray-400'}`}>
@@ -345,13 +403,21 @@ export default function Home() {
                           </div>
                       ))}
                     </div>
-                    <PeriodStats coloredRanges={coloredRanges} periodIndex={periodIndex} periods={periods} />
-                    <button
-                        onClick={() => exportToPDF(personalInfo)}
-                        className="fixed bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all"
-                    >
-                      Zapisz PDF
-                    </button>
+                    <PeriodStats
+                        coloredRanges={coloredRanges}
+                        periodIndex={periodIndex}
+                        periods={periods}
+                        selectedType={selectedLegendType}
+                        onSelectType={setSelectedLegendType}
+                    />
+
+                    <ExportPDFButton personalInfo={personalInfo} />
+                    <ResetButton
+                        setPeriods={setPeriods}
+                        setDisplayPeriods={setDisplayPeriods}
+                        setColoredRanges={setColoredRanges}
+                        setPersonalInfo={setPersonalInfo}
+                    />
                   </div>
               ))}
               <SpeedInsights/>

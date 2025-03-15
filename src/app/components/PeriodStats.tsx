@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react';
 import { getWorkingDaysInRange } from '@/app/utils/getWorkingDaysInRange';
 
+
 interface ColoredRange {
     start: string;
     end: string;
@@ -12,17 +13,40 @@ interface PeriodStatsProps {
     coloredRanges: ColoredRange[];
     periodIndex: string;
     periods: Array<{ start: string; end: string; }>;
+    selectedType?: string | null; // Changed from string | undefined to string | null
+    onSelectType: (type: string | null) => void;
 }
 
-export const PeriodStats = ({ coloredRanges, periodIndex, periods }: PeriodStatsProps) => {
+export const PeriodStats = ({
+                                coloredRanges,
+                                periodIndex,
+                                periods,
+                                selectedType,
+                                onSelectType
+                            }: PeriodStatsProps) => {
     const [copySuccess, setCopySuccess] = useState(false);
-    const periodYear = new Date(periods[parseInt(periodIndex)].start).getFullYear();
 
+    // Get the start and end dates of the current period
+    const periodStart = periods[parseInt(periodIndex)].start;
+    const periodEnd = periods[parseInt(periodIndex)].end;
+
+    // Parse period dates for comparison
+    const periodStartDate = new Date(periodStart);
+    const periodEndDate = new Date(periodEnd);
+
+    // Filter ranges that fall within the period's date range
     const filteredRanges = coloredRanges.filter(range => {
+        // Parse the range start date
         const separator = range.start.includes('/') ? '/' : '.';
-        const [, , year] = range.start.split(separator);
-        const rangeYear = parseInt(year);
-        return rangeYear === periodYear;
+        const [dayStart, monthStart, yearStart] = range.start.split(separator).map(Number);
+        const rangeStartDate = new Date(yearStart, monthStart - 1, dayStart);
+
+        // Parse the range end date
+        const [dayEnd, monthEnd, yearEnd] = range.end.split(separator).map(Number);
+        const rangeEndDate = new Date(yearEnd, monthEnd - 1, dayEnd);
+
+        // Check if the range overlaps with the period
+        return (rangeStartDate <= periodEndDate && rangeEndDate >= periodStartDate);
     });
 
     const groupedRanges = filteredRanges.reduce((acc, range) => {
@@ -48,9 +72,6 @@ export const PeriodStats = ({ coloredRanges, periodIndex, periods }: PeriodStats
         return `${basicPeriodLine}\n${rangesStats}`;
     };
 
-    const periodStart = periods[parseInt(periodIndex)].start;
-    const periodEnd = periods[parseInt(periodIndex)].end;
-
     const totalWorkingDays = getWorkingDaysInRange(periodStart, periodEnd);
     const coloredRangeDays = filteredRanges.reduce((sum, range) => {
         const rangeDays = getWorkingDaysInRange(range.start, range.end);
@@ -58,6 +79,16 @@ export const PeriodStats = ({ coloredRanges, periodIndex, periods }: PeriodStats
     }, 0);
 
     const basicPeriodDays = totalWorkingDays - coloredRangeDays;
+
+    const handleLegendClick = (type: string) => {
+        if (selectedType === type) {
+            // If the same type is clicked again, deselect it
+            onSelectType(null);
+        } else {
+            // Otherwise, select the new type
+            onSelectType(type);
+        }
+    };
 
     return (
         <div className="mt-4 p-6 bg-gray-800 rounded-lg shadow-lg">
@@ -89,9 +120,14 @@ export const PeriodStats = ({ coloredRanges, periodIndex, periods }: PeriodStats
                     sum + getWorkingDaysInRange(range.start, range.end), 0
                 );
                 const dateRangesString = ranges.map(range => `${range.start}-${range.end}`).join(', ');
+                const isSelected = selectedType === type;
 
                 return (
-                    <div key={type} className="mb-4">
+                    <div
+                        key={type}
+                        className={`mb-4 p-2 rounded-md cursor-pointer transition-colors duration-200 ${isSelected ? 'bg-gray-700' : 'hover:bg-gray-700'}`}
+                        onClick={() => handleLegendClick(type)}
+                    >
                         <div className="flex items-center space-x-3 mb-2">
                             <div className={`w-4 h-4 ${ranges[0].color} rounded-full shadow-sm`}></div>
                             <span className="text-white font-medium">
