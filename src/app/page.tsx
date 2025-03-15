@@ -66,8 +66,6 @@ export default function Home() {
     return matchingRanges.length > 0 ? matchingRanges[matchingRanges.length - 1] : null;
   };
 
-  // Add this helper function to properly parse dates from the DD/MM/YYYY format
-  // Updated parseDate function to handle both YYYY-MM-DD and DD/MM/YYYY formats
   const parseDate = (dateString: string): Date | null => {
     if (!dateString || dateString.trim() === '') return null;
 
