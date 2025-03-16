@@ -1,5 +1,6 @@
 ﻿import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { createLoadingOverlay, removeExistingOverlays } from "@/app/utils/loadingOverlay";
 
 export interface PersonalInfo {
     firstName: string;
@@ -11,54 +12,16 @@ export interface PersonalInfo {
 
 export const exportToPDF = async (personalInfo: PersonalInfo) => {
     try {
-        // Create loading indicator
-        const loadingOverlay = document.createElement('div');
-        loadingOverlay.style.position = 'fixed';
-        loadingOverlay.style.top = '0';
-        loadingOverlay.style.left = '0';
-        loadingOverlay.style.width = '100%';
-        loadingOverlay.style.height = '100%';
-        loadingOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-        loadingOverlay.style.zIndex = '9999';
-        loadingOverlay.style.display = 'flex';
-        loadingOverlay.style.justifyContent = 'center';
-        loadingOverlay.style.alignItems = 'center';
-        loadingOverlay.style.flexDirection = 'column';
-
-        const loadingText = document.createElement('div');
-        loadingText.textContent = 'Generowanie PDF...';
-        loadingText.style.color = 'white';
-        loadingText.style.marginBottom = '20px';
-        loadingText.style.fontSize = '18px';
-
-        const progressContainer = document.createElement('div');
-        progressContainer.style.width = '300px';
-        progressContainer.style.height = '10px';
-        progressContainer.style.backgroundColor = '#333';
-        progressContainer.style.borderRadius = '5px';
-
-        const progressBar = document.createElement('div');
-        progressBar.style.width = '0%';
-        progressBar.style.height = '100%';
-        progressBar.style.backgroundColor = '#4CAF50';
-        progressBar.style.borderRadius = '5px';
-        progressBar.style.transition = 'width 0.3s';
-
-        progressContainer.appendChild(progressBar);
-        loadingOverlay.appendChild(loadingText);
-        loadingOverlay.appendChild(progressContainer);
-        document.body.appendChild(loadingOverlay);
-
-        const updateProgress = (percent: number) => {
-            progressBar.style.width = `${percent}%`;
-            loadingText.textContent = `Generowanie PDF... ${Math.round(percent)}%`;
-        };
+        // Create loading overlay
+        const loading = createLoadingOverlay({
+            message: 'Generowanie PDF...'
+        });
 
         // Find all calendar sections
         const calendarSections = document.querySelectorAll('#calendar-container > div');
 
         if (!calendarSections || calendarSections.length === 0) {
-            document.body.removeChild(loadingOverlay);
+            loading.close();
             alert('Nie znaleziono danych do wyeksportowania');
             return;
         }
@@ -156,7 +119,7 @@ export const exportToPDF = async (personalInfo: PersonalInfo) => {
 
         // Process each section
         for (let i = 0; i < calendarSections.length; i++) {
-            updateProgress((i / calendarSections.length) * 90); // Update progress (saving last 10% for final processing)
+            loading.updateProgress((i / calendarSections.length) * 90); // Update progress (saving last 10% for final processing)
 
             const section = calendarSections[i];
 
@@ -231,7 +194,7 @@ export const exportToPDF = async (personalInfo: PersonalInfo) => {
             pdf.addImage(imgData, 'PNG', xOffset, contentY, finalImgWidth, finalImgHeight);
         }
 
-        updateProgress(95); // Almost done
+        loading.updateProgress(95); // Almost done
 
         // Save PDF with proper filename
         const sanitizedFirstName = (personalInfo.firstName || 'user').replace(/[^a-zA-Z0-9]/g, '_');
@@ -241,21 +204,15 @@ export const exportToPDF = async (personalInfo: PersonalInfo) => {
         pdf.save(`${sanitizedFirstName}_${sanitizedLastName}_SMK_${timestamp}.pdf`);
 
         // Clean up and finish
-        updateProgress(100);
+        loading.updateProgress(100);
         setTimeout(() => {
-            document.body.removeChild(loadingOverlay);
+            loading.close();
         }, 500);
 
         console.log('PDF exported successfully with multiple pages');
     } catch (error) {
         console.error('PDF generation error:', error);
-
-        // Make sure to clean up loading overlay if there's an error
-        const existingOverlay = document.querySelector('div[style*="position: fixed"][style*="zIndex: 9999"]');
-        if (existingOverlay && existingOverlay.parentNode) {
-            existingOverlay.parentNode.removeChild(existingOverlay);
-        }
-
+        removeExistingOverlays();
         alert('Wystąpił błąd podczas generowania PDF. Spróbuj ponownie.');
     }
 };

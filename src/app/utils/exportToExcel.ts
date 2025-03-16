@@ -2,6 +2,7 @@
 import { saveAs } from 'file-saver';
 import { ColoredRange } from "@/app/types/Period";
 import { getWorkingDaysInRange } from "@/app/utils/getWorkingDaysInRange";
+import { createLoadingOverlay, removeExistingOverlays } from "@/app/utils/loadingOverlay";
 
 export const exportToExcel = async (
     coloredRanges: ColoredRange[],
@@ -9,8 +10,16 @@ export const exportToExcel = async (
     personalInfo: { firstName: string, lastName: string }
 ) => {
     try {
+        // Create loading overlay
+        const loading = createLoadingOverlay({
+            message: 'Generowanie Excel...'
+        });
+        loading.updateProgress(10); // Initial progress
+
         // Group colored ranges by type
         const workingDaysByType: Record<string, number> = {};
+
+        loading.updateProgress(20);
 
         coloredRanges.forEach(range => {
             if (!workingDaysByType[range.type]) {
@@ -35,9 +44,13 @@ export const exportToExcel = async (
             workingDaysByType[range.type] += workingDays;
         });
 
+        loading.updateProgress(40);
+
         // Create a new workbook
         const workbook = new ExcelJS.Workbook();
         const worksheet = workbook.addWorksheet('Statystyki');
+
+        loading.updateProgress(50);
 
         // Set column widths
         worksheet.columns = [
@@ -61,18 +74,36 @@ export const exportToExcel = async (
         worksheet.getCell('A3').font = { bold: true };
         worksheet.getCell('B3').font = { bold: true };
 
-        // Generate Excel file
-        const fileName = `${personalInfo.firstName}_${personalInfo.lastName}_SMK.xlsx`;
+        loading.updateProgress(70);
+
+        // Generate Excel file with timestamp
+        const sanitizedFirstName = (personalInfo.firstName || 'user').replace(/[^a-zA-Z0-9]/g, '_');
+        const sanitizedLastName = (personalInfo.lastName || 'report').replace(/[^a-zA-Z0-9]/g, '_');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+        const fileName = `${sanitizedFirstName}_${sanitizedLastName}_SMK_${timestamp}.xlsx`;
+
+        loading.updateProgress(80);
 
         // Write to buffer
         const buffer = await workbook.xlsx.writeBuffer();
+
+        loading.updateProgress(95);
 
         // Use file-saver to save the file
         const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
         saveAs(blob, fileName);
 
+        // Clean up and finish
+        loading.updateProgress(100);
+        setTimeout(() => {
+            loading.close();
+        }, 500);
+
+        console.log('Excel exported successfully');
+
     } catch (error) {
         console.error('Failed to export to Excel:', error);
+        removeExistingOverlays();
         alert('Wystąpił błąd podczas eksportu do Excela.');
     }
 };
