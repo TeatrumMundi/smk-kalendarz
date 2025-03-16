@@ -4,9 +4,38 @@ import { ColoredRange } from "@/app/types/Period";
 import { getWorkingDaysInRange } from "@/app/utils/getWorkingDaysInRange";
 import { createLoadingOverlay, removeExistingOverlays } from "@/app/utils/loadingOverlay";
 
+// Function to apply styling to the worksheet
+const applyWorksheetStyling =
+    (worksheet: ExcelJS.Worksheet, personalInfo: { firstName: string, lastName: string }) => {
+        // Set column widths
+        worksheet.columns = [
+            { header: '', key: 'type', width: 20 },
+            { header: '', key: 'days', width: 20 }
+        ];
+
+        // Add header with personal info
+        worksheet.addRow([`Statystyki dla: ${personalInfo.firstName} ${personalInfo.lastName}`]);
+        worksheet.addRow([]); // Empty row
+
+        // Merge cells A2 and B2 for the empty row
+        worksheet.mergeCells('A2:B2');
+
+        // Center the merged cell
+        worksheet.getCell('A2').alignment = { horizontal: 'center' };
+        worksheet.getCell('A2').font = { bold: true, size: 15 };
+
+        // Add data for each type
+        worksheet.addRow(['Typ', 'Liczba dni (roboczych)']);
+
+        // Apply some styling
+        worksheet.getCell('A1').font = { bold: true, size: 14 };
+        worksheet.getCell('A3').font = { bold: true };
+        worksheet.getCell('B3').font = { bold: true };
+    };
+
 export const exportToExcel = async (
     coloredRanges: ColoredRange[],
-    _periods: Array<{ start: string; end: string }>, // Prefix with underscore to indicate it's not used
+    periods: Array<{ start: string; end: string }>,
     personalInfo: { firstName: string, lastName: string }
 ) => {
     try {
@@ -20,6 +49,33 @@ export const exportToExcel = async (
         const workingDaysByType: Record<string, number> = {};
 
         loading.updateProgress(20);
+
+        // Calculate working days for basic periods (now called "Liczba dni roboczych")
+        let totalWorkingDays = 0;
+        periods.forEach(period => {
+            // Format dates to DD/MM/YYYY if they're not already in that format
+            const formatDateIfNeeded = (dateStr: string) => {
+                // Check if date is in ISO format (YYYY-MM-DD)
+                if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    const [year, month, day] = dateStr.split('-');
+                    return `${day}/${month}/${year}`;
+                }
+                return dateStr;
+            };
+
+            const startFormatted = formatDateIfNeeded(period.start);
+            const endFormatted = formatDateIfNeeded(period.end);
+
+            // Calculate working days for this basic period
+            const workingDays = getWorkingDaysInRange(startFormatted, endFormatted);
+            totalWorkingDays += workingDays;
+        });
+
+        // Add "Liczba dni roboczych" to the workingdaysbytype
+        workingDaysByType["Liczba dni roboczych"] = totalWorkingDays;
+
+        // Process colored ranges and track their total
+        let totalColoredRangeDays = 0;
 
         coloredRanges.forEach(range => {
             if (!workingDaysByType[range.type]) {
@@ -42,37 +98,37 @@ export const exportToExcel = async (
             // Calculate working days using the getWorkingDaysInRange function
             const workingDays = getWorkingDaysInRange(startFormatted, endFormatted);
             workingDaysByType[range.type] += workingDays;
+            totalColoredRangeDays += workingDays;
         });
 
         loading.updateProgress(40);
 
         // Create a new workbook
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Statystyki');
+        const worksheet = workbook.addWorksheet('Suma');
 
         loading.updateProgress(50);
 
-        // Set column widths
-        worksheet.columns = [
-            { header: '', key: 'type', width: 20 },
-            { header: '', key: 'days', width: 20 }
-        ];
+        // Apply styling to the worksheet
+        applyWorksheetStyling(worksheet, personalInfo);
 
-        // Add header with personal info
-        worksheet.addRow([`Statystyki dla: ${personalInfo.firstName} ${personalInfo.lastName}`]);
-        worksheet.addRow([]); // Empty row
+        // Add data for each type, ensuring "Liczba dni roboczych" is first
+        const orderedTypes = ["Liczba dni roboczych", ...Object.keys(workingDaysByType).filter(type => type !== "Liczba dni roboczych")];
 
-        // Add data for each type
-        worksheet.addRow(['Typ', 'Liczba dni (roboczych)']);
-
-        Object.keys(workingDaysByType).forEach(type => {
-            worksheet.addRow([type, workingDaysByType[type]]);
+        orderedTypes.forEach(type => {
+            if (workingDaysByType[type] !== undefined) {
+                worksheet.addRow([type, workingDaysByType[type]]);
+            }
         });
 
-        // Apply some styling
-        worksheet.getCell('A1').font = { bold: true, size: 14 };
-        worksheet.getCell('A3').font = { bold: true };
-        worksheet.getCell('B3').font = { bold: true };
+        // Add the remaining days (total working days - sum of colored ranges)
+        const remainingDays = totalWorkingDays - totalColoredRangeDays;
+        worksheet.addRow(["Pozostałe dni", remainingDays]);
+
+        // Style the remaining days row to stand out
+        const lastRowIndex = worksheet.rowCount;
+        worksheet.getCell(`A${lastRowIndex}`).font = { bold: true };
+        worksheet.getCell(`B${lastRowIndex}`).font = { bold: true };
 
         loading.updateProgress(70);
 
