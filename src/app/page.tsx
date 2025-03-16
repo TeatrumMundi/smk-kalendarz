@@ -10,14 +10,14 @@ import { calculateDays } from "@/app/utils/calculateDays";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import { handleDayClick as handleDayClickUtil } from "@/app/utils/handleDayClick";
-import ResetButton from "@/app/components/resetButton";
-import ExportPDFButton from "@/app/components/exportPDFButton";
+import ResetButton from "@/app/components/buttons/resetButton";
+import PDFButton from "@/app/components/buttons/PDFButton";
 import PersonalInfoForm from "@/app/components/personalInfoForm";
 import PeriodInput from "@/app/components/PeriodInput";
 import { useColoredRanges } from '@/app/hooks/useColoredRanges';
 import { usePeriods } from '@/app/hooks/usePeriods';
 import { usePersonalInfo } from '@/app/hooks/usePersonalInfo';
-import ExportExcelButton from "@/app/components/exportExcelButton";
+import ExcelButton from "@/app/components/buttons/excelButton";
 import { legendItems } from '@/app/config/legendConfig';
 
 const getMonthNumber = (monthName: string): number => {
@@ -238,8 +238,8 @@ export default function Home() {
                         selectedType={selectedLegendType}
                         onSelectType={setSelectedLegendType}
                     />
-                    <ExportPDFButton personalInfo={personalInfo} />
-                    <ExportExcelButton
+                    <PDFButton personalInfo={personalInfo} />
+                    <ExcelButton
                         personalInfo={personalInfo}
                         coloredRanges={coloredRanges}
                         periods={periods}

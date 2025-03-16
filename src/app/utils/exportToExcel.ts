@@ -62,7 +62,7 @@ export const exportToExcel = async (
         worksheet.getCell('B3').font = { bold: true };
 
         // Generate Excel file
-        const fileName = `statystyki_${personalInfo.firstName}_${personalInfo.lastName}.xlsx`;
+        const fileName = `${personalInfo.firstName}_${personalInfo.lastName}_SMK.xlsx`;
 
         // Write to buffer
         const buffer = await workbook.xlsx.writeBuffer();

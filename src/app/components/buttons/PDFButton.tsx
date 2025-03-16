@@ -8,7 +8,7 @@ interface ExportPDFButtonProps {
     };
 }
 
-const ExportPDFButton: React.FC<ExportPDFButtonProps> = ({ personalInfo }) => {
+const PDFButton: React.FC<ExportPDFButtonProps> = ({ personalInfo }) => {
     return (
         <button
             onClick={() => exportToPDF(personalInfo)}
@@ -19,4 +19,4 @@ const ExportPDFButton: React.FC<ExportPDFButtonProps> = ({ personalInfo }) => {
     );
 };
 
-export default ExportPDFButton;
+export default PDFButton;

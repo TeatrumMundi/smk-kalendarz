@@ -8,7 +8,7 @@ interface ExportExcelButtonProps {
     periods: Array<{ start: string; end: string }>;
 }
 
-const ExportExcelButton: React.FC<ExportExcelButtonProps> = ({ personalInfo, coloredRanges, periods }) => {
+const ExcelButton: React.FC<ExportExcelButtonProps> = ({ personalInfo, coloredRanges, periods }) => {
     return (
         <button
             onClick={() => exportToExcel(coloredRanges, periods, personalInfo)}
@@ -19,4 +19,4 @@ const ExportExcelButton: React.FC<ExportExcelButtonProps> = ({ personalInfo, col
     );
 };
 
-export default ExportExcelButton;
+export default ExcelButton;

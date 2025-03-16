@@ -9,9 +9,3 @@
     { color: 'bg-pink-400', label: 'Urlop macierzyński' },
     { color: 'bg-green-600', label: 'Urlop wychowawczy' }
 ];
-
-// You can also define a type for the legend items
-export interface LegendItem {
-    color: string;
-    label: string;
-}
