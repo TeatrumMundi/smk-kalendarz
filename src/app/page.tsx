@@ -17,18 +17,8 @@ import PeriodInput from "@/app/components/PeriodInput";
 import { useColoredRanges } from '@/app/hooks/useColoredRanges';
 import { usePeriods } from '@/app/hooks/usePeriods';
 import { usePersonalInfo } from '@/app/hooks/usePersonalInfo';
-
-const legendItems = [
-  { color: 'bg-red-500', label: 'Urlop' },
-  { color: 'bg-blue-500', label: 'Staże' },
-  { color: 'bg-cyan-400', label: 'Kursy' },
-  { color: 'bg-emerald-400', label: 'Samokształcenie' },
-  { color: 'bg-amber-700', label: 'L4' },
-  { color: 'bg-purple-500', label: 'Opieka nad dzieckiem' },
-  { color: 'bg-yellow-500', label: 'Kwarantanna' },
-  { color: 'bg-pink-400', label: 'Urlop macierzyński' },
-  { color: 'bg-green-600', label: 'Urlop wychowawczy' }
-];
+import ExportExcelButton from "@/app/components/exportExcelButton";
+import { legendItems } from '@/app/config/legendConfig';
 
 const getMonthNumber = (monthName: string): number => {
   const months = [
@@ -185,11 +175,11 @@ export default function Home() {
                       )}
                     </h2>
                     <div className="mt-4 flex flex-nowrap space-x-2 p-4 bg-gray-800 rounded-lg overflow-x-auto justify-center">
-                      {legendItems.map((item, index) => (
+                      {legendItems.map((item: {color:string, label:string}, index: number) => (
                           <div
                               key={index}
                               className={`flex items-center whitespace-nowrap cursor-pointer p-2 rounded transition-all
-                      ${selectedLegendType === item.label ? 'bg-gray-700' : 'hover:bg-gray-700'}`}
+                              ${selectedLegendType === item.label ? 'bg-gray-700' : 'hover:bg-gray-700'}`}
                               onClick={() => setSelectedLegendType(selectedLegendType === item.label ? null : item.label)}
                           >
                             <div className={`w-3 h-3 ${item.color} rounded mr-2`}></div>
@@ -220,13 +210,13 @@ export default function Home() {
                                     <div
                                         key={dayIndex}
                                         className={`h-8 text-xs border p-0.5 rounded-lg flex justify-center items-center
-                              ${isWeekend ? 'bg-red-900' : ''}
-                              ${isHoliday ? 'bg-orange-900' : ''}
-                              ${coloredRange ? `${coloredRange.color} ${!(isWeekend || isHoliday) ? 'cursor-pointer hover:opacity-50' : ''}` : ''}
-                              ${!isInBasePeriod ? 'bg-gray-600' : ''}
-                              ${isInBasePeriod && selectedLegendType && !(isWeekend || isHoliday) ? 'hover:opacity-50 cursor-pointer' : ''}
-                              ${rangeSelection.start && currentDate?.getTime() === rangeSelection.start.getTime() ? 'bg-gray-600' : ''}
-                              transition-all`}
+                                        ${isWeekend ? 'bg-red-900' : ''}
+                                        ${isHoliday ? 'bg-orange-900' : ''}
+                                        ${coloredRange ? `${coloredRange.color} ${!(isWeekend || isHoliday) ? 'cursor-pointer hover:opacity-50' : ''}` : ''}
+                                        ${!isInBasePeriod ? 'bg-gray-600' : ''}
+                                        ${isInBasePeriod && selectedLegendType && !(isWeekend || isHoliday) ? 'hover:opacity-50 cursor-pointer' : ''}
+                                        ${rangeSelection.start && currentDate?.getTime() === rangeSelection.start.getTime() ? 'bg-gray-600' : ''}
+                                        transition-all`}
                                         onClick={() => currentDate && isInBasePeriod && !(isWeekend || isHoliday) && handleDayClick(currentDate)}
                                     >
                                       {day.day && (
@@ -248,8 +238,12 @@ export default function Home() {
                         selectedType={selectedLegendType}
                         onSelectType={setSelectedLegendType}
                     />
-
                     <ExportPDFButton personalInfo={personalInfo} />
+                    <ExportExcelButton
+                        personalInfo={personalInfo}
+                        coloredRanges={coloredRanges}
+                        periods={periods}
+                    />
                     <ResetButton
                         setPeriods={setPeriods}
                         setDisplayPeriods={setDisplayPeriods}

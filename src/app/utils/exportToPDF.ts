@@ -1,137 +1,181 @@
 ﻿import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-export const exportToPDF = async (personalInfo: { firstName: string, lastName: string }) => {
+export interface PersonalInfo {
+    firstName: string;
+    lastName: string;
+    position?: string;  // Optional additional fields
+    department?: string;
+    employeeId?: string;
+}
+
+export const exportToPDF = async (personalInfo: PersonalInfo) => {
     try {
-        // Find all calendar sections - assuming they are wrapped in divs with specific classes or ids
+        // Create loading indicator
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.style.position = 'fixed';
+        loadingOverlay.style.top = '0';
+        loadingOverlay.style.left = '0';
+        loadingOverlay.style.width = '100%';
+        loadingOverlay.style.height = '100%';
+        loadingOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        loadingOverlay.style.zIndex = '9999';
+        loadingOverlay.style.display = 'flex';
+        loadingOverlay.style.justifyContent = 'center';
+        loadingOverlay.style.alignItems = 'center';
+        loadingOverlay.style.flexDirection = 'column';
+
+        const loadingText = document.createElement('div');
+        loadingText.textContent = 'Generowanie PDF...';
+        loadingText.style.color = 'white';
+        loadingText.style.marginBottom = '20px';
+        loadingText.style.fontSize = '18px';
+
+        const progressContainer = document.createElement('div');
+        progressContainer.style.width = '300px';
+        progressContainer.style.height = '10px';
+        progressContainer.style.backgroundColor = '#333';
+        progressContainer.style.borderRadius = '5px';
+
+        const progressBar = document.createElement('div');
+        progressBar.style.width = '0%';
+        progressBar.style.height = '100%';
+        progressBar.style.backgroundColor = '#4CAF50';
+        progressBar.style.borderRadius = '5px';
+        progressBar.style.transition = 'width 0.3s';
+
+        progressContainer.appendChild(progressBar);
+        loadingOverlay.appendChild(loadingText);
+        loadingOverlay.appendChild(progressContainer);
+        document.body.appendChild(loadingOverlay);
+
+        const updateProgress = (percent: number) => {
+            progressBar.style.width = `${percent}%`;
+            loadingText.textContent = `Generowanie PDF... ${Math.round(percent)}%`;
+        };
+
+        // Find all calendar sections
         const calendarSections = document.querySelectorAll('#calendar-container > div');
 
         if (!calendarSections || calendarSections.length === 0) {
-            console.log('No calendar sections found');
+            document.body.removeChild(loadingOverlay);
+            alert('Nie znaleziono danych do wyeksportowania');
             return;
         }
 
-        console.log(`Found ${calendarSections.length} calendar sections to export`);
-
         // Create a new PDF with landscape orientation
-        const pdf = new jsPDF('l', 'mm', 'a4');
+        const pdf = new jsPDF('p', 'mm', 'a4');
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
 
-        // Convert each section to a PDF page
+        // Add metadata to the PDF
+        pdf.setProperties({
+            title: `Kalendarz SMK - ${personalInfo.firstName} ${personalInfo.lastName}`,
+            subject: 'Kalendarz SMK',
+            author: 'System SMK',
+            creator: 'SMK PDF Generator'
+        });
+
+        // Define fonts and colors for document consistency
+        pdf.setDrawColor(200, 200, 200);
+
+        // Set optimal scale based on screen resolution
+        const scale = window.devicePixelRatio > 1 ? 2 : 1.5;
+
+        // Helper function to fix colors
+        const fixColors = (container: HTMLElement) => {
+            // Create a mapping for tailwind classes to safe colors
+            const colorMap: Record<string, string> = {
+                'bg-red-500': '#ef4444',
+                'bg-blue-500': '#3b82f6',
+                'bg-cyan-400': '#22d3ee',
+                'bg-emerald-400': '#34d399',
+                'bg-amber-700': '#b45309',
+                'bg-purple-500': '#a855f7',
+                'bg-yellow-500': '#eab308',
+                'bg-pink-400': '#f472b6',
+                'bg-green-600': '#16a34a',
+                'bg-red-900': '#7f1d1d',
+                'bg-orange-900': '#7c2d12',
+                'bg-gray-600': '#4b5563',
+                'bg-gray-700': '#374151',
+                'bg-gray-800': '#1f2937',
+                'bg-gray-900': '#111827',
+                'text-red-400': '#f87171',
+                'text-gray-400': '#9ca3af',
+                'text-gray-300': '#ffffff',
+                'text-blue-400': '#ffffff',
+                'text-gray-100': '#ffffff',
+                'text-white': '#ffffff'
+            };
+
+            // Apply color fixes dynamically by checking for class prefix
+            container.querySelectorAll('*').forEach(el => {
+                if (el instanceof HTMLElement) {
+                    // Fix computed styles with oklch
+                    const style = getComputedStyle(el);
+                    ['color', 'backgroundColor', 'borderColor'].forEach(prop => {
+                        const value = style[prop as keyof CSSStyleDeclaration] as string;
+                        if (value && value.includes('oklch')) {
+                            el.style[prop] = prop === 'color' ? '#000000' : '#ffffff';
+                        }
+                    });
+
+                    // Apply color map fixes based on classes
+                    if (el.className) {
+                        Object.entries(colorMap).forEach(([className, color]) => {
+                            if (el.className.includes(className)) {
+                                if (className.startsWith('bg-')) {
+                                    el.style.backgroundColor = color;
+                                } else if (className.startsWith('text-')) {
+                                    el.style.color = color;
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+            // Remove buttons and UI elements not needed in PDF
+            container.querySelectorAll('button').forEach(button => {
+                if (button.textContent?.includes('PDF') ||
+                    button.textContent?.includes('Reset') ||
+                    button.textContent?.includes('Kopiuj') ||
+                    button.className.includes('fixed')) {
+                    button.style.display = 'none';
+                }
+            });
+        };
+
+        // Process each section
         for (let i = 0; i < calendarSections.length; i++) {
+            updateProgress((i / calendarSections.length) * 90); // Update progress (saving last 10% for final processing)
+
             const section = calendarSections[i];
 
-            // Create a temporary container to hold our cloned content
+            // Create temporary container with white background
             const tempDiv = document.createElement('div');
             tempDiv.style.position = 'absolute';
             tempDiv.style.left = '-9999px';
             tempDiv.style.width = section.scrollWidth + 'px';
-            tempDiv.style.backgroundColor = '#ffffff';
+            tempDiv.style.backgroundColor = '#000000';
             tempDiv.style.padding = '20px';
+            tempDiv.style.color = '#000000';
 
-            // Clone the content
+            // Clone content
             tempDiv.innerHTML = section.innerHTML;
             document.body.appendChild(tempDiv);
 
-            // Process all stylesheets to remove oklch colors
-            const styleSheets = Array.from(document.styleSheets);
-            for (const sheet of styleSheets) {
-                try {
-                    if (sheet.cssRules) {
-                        for (let j = 0; j < sheet.cssRules.length; j++) {
-                            const rule = sheet.cssRules[j];
-                            if (rule instanceof CSSStyleRule) {
-                                for (let k = 0; k < rule.style.length; k++) {
-                                    const property = rule.style[k];
-                                    const value = rule.style.getPropertyValue(property);
-                                    if (value.includes('oklch')) {
-                                        // Remove or replace the problematic oklch color function
-                                        rule.style.setProperty(property, '#333333', 'important');
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } catch (e) {
-                    // Some stylesheets might be inaccessible due to CORS
-                    console.log('Could not access stylesheet', e);
-                }
-            }
+            // Apply color fixes
+            fixColors(tempDiv);
 
-            // Apply direct styles to all elements with potentially problematic colors
-            const applyColorFixes = (container: HTMLElement) => {
-                // Fix all computed styles to remove any oklch colors
-                const allElements = container.querySelectorAll('*');
-                allElements.forEach((el) => {
-                    if (el instanceof HTMLElement) {
-                        const computedStyle = window.getComputedStyle(el);
-                        for (const prop of ['color', 'background-color', 'border-color', 'outline-color', 'box-shadow']) {
-                            const value = computedStyle.getPropertyValue(prop);
-                            if (value.includes('oklch')) {
-                                // Apply fallback color depending on the property
-                                if (prop === 'color') {
-                                    el.style.color = '#000000';
-                                } else if (prop === 'background-color') {
-                                    el.style.backgroundColor = '#ffffff';
-                                }
-                                // Other properties can be set as needed
-                            }
-                        }
-                    }
-                });
-
-                // Fix background colors for Tailwind classes
-                container.querySelectorAll('[class*="bg-"]').forEach((el) => {
-                    if (el instanceof HTMLElement) {
-                        // Apply safe colors for each Tailwind color class
-                        if (el.className.includes('bg-red-500')) el.style.backgroundColor = '#ef4444';
-                        else if (el.className.includes('bg-blue-500')) el.style.backgroundColor = '#3b82f6';
-                        else if (el.className.includes('bg-cyan-400')) el.style.backgroundColor = '#22d3ee';
-                        else if (el.className.includes('bg-emerald-400')) el.style.backgroundColor = '#34d399';
-                        else if (el.className.includes('bg-amber-700')) el.style.backgroundColor = '#b45309';
-                        else if (el.className.includes('bg-purple-500')) el.style.backgroundColor = '#a855f7';
-                        else if (el.className.includes('bg-yellow-500')) el.style.backgroundColor = '#eab308';
-                        else if (el.className.includes('bg-pink-400')) el.style.backgroundColor = '#f472b6';
-                        else if (el.className.includes('bg-green-600')) el.style.backgroundColor = '#16a34a';
-                        else if (el.className.includes('bg-red-900')) el.style.backgroundColor = '#7f1d1d';
-                        else if (el.className.includes('bg-orange-900')) el.style.backgroundColor = '#7c2d12';
-                        else if (el.className.includes('bg-gray-600')) el.style.backgroundColor = '#4b5563';
-                        else if (el.className.includes('bg-gray-700')) el.style.backgroundColor = '#374151';
-                        else if (el.className.includes('bg-gray-800')) el.style.backgroundColor = '#1f2937';
-                        else if (el.className.includes('bg-gray-900')) el.style.backgroundColor = '#111827';
-                    }
-                });
-
-                // Fix text colors
-                container.querySelectorAll('[class*="text-"]').forEach((el) => {
-                    if (el instanceof HTMLElement) {
-                        if (el.className.includes('text-red-400')) el.style.color = '#f87171';
-                        else if (el.className.includes('text-gray-400')) el.style.color = '#9ca3af';
-                        else if (el.className.includes('text-gray-100')) el.style.color = '#f3f4f6';
-                        else if (el.className.includes('text-white')) el.style.color = '#ffffff';
-                    }
-                });
-
-                // Remove the export button from each section if it exists
-                const exportButtons = container.querySelectorAll('button');
-                exportButtons.forEach(button => {
-                    if (button.textContent?.includes('PDF')) {
-                        button.style.display = 'none';
-                    }
-                });
-            };
-
-            applyColorFixes(tempDiv);
-
-            // Create the canvas from our fixed element
+            // Generate canvas
             const canvas = await html2canvas(tempDiv, {
                 backgroundColor: '#ffffff',
-                scale: 1.5,
+                scale: scale,
                 useCORS: true,
                 logging: false,
                 onclone: (clonedDoc) => {
-                    // Additional processing on the cloned document
                     const elements = clonedDoc.querySelectorAll('*');
                     elements.forEach(el => {
                         if (el instanceof HTMLElement) {
@@ -145,30 +189,66 @@ export const exportToPDF = async (personalInfo: { firstName: string, lastName: s
                 }
             });
 
-            // Clean up
+            // Clean up temp element
             document.body.removeChild(tempDiv);
 
-            // Add the page to the PDF
-            if (i > 0) { // Add a new page for each section after the first
+            // Add new page if not first page
+            if (i > 0) {
                 pdf.addPage();
             }
 
-            // Add the image to the PDF with proper scaling
-            const imgData = canvas.toDataURL('image/png');
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            // Add marginTop
+            const marginTop = 0;
 
-            // Show progress if many sections (optional)
-            if (calendarSections.length > 3) {
-                console.log(`Processed page ${i+1} of ${calendarSections.length}`);
+            // Calculate content area (accounting for header)
+            const contentAreaHeight = pdfHeight - marginTop;
+            const contentY = marginTop;
+
+            // Add image with proper scaling to fit below header
+            const imgData = canvas.toDataURL('image/png');
+            const imgWidth = pdfWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            // Scale image to fit available height if needed
+            let finalImgWidth = imgWidth;
+            let finalImgHeight = imgHeight;
+
+            if (imgHeight > contentAreaHeight) {
+                finalImgHeight = contentAreaHeight;
+                finalImgWidth = (canvas.width * finalImgHeight) / canvas.height;
             }
+
+            // Center image horizontally if it's smaller than page width
+            const xOffset = finalImgWidth < pdfWidth ? (pdfWidth - finalImgWidth) / 2 : 0;
+
+            pdf.addImage(imgData, 'PNG', xOffset, contentY, finalImgWidth, finalImgHeight);
         }
 
-        // Save the PDF with all pages
-        pdf.save(`${personalInfo.firstName || 'user'}_${personalInfo.lastName || 'calendar'}_SMK.pdf`);
-        console.log('PDF exported successfully with multiple pages');
+        updateProgress(95); // Almost done
 
+        // Save PDF with proper filename
+        const sanitizedFirstName = (personalInfo.firstName || 'user').replace(/[^a-zA-Z0-9]/g, '_');
+        const sanitizedLastName = (personalInfo.lastName || 'calendar').replace(/[^a-zA-Z0-9]/g, '_');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+
+        pdf.save(`${sanitizedFirstName}_${sanitizedLastName}_SMK_${timestamp}.pdf`);
+
+        // Clean up and finish
+        updateProgress(100);
+        setTimeout(() => {
+            document.body.removeChild(loadingOverlay);
+        }, 500);
+
+        console.log('PDF exported successfully with multiple pages');
     } catch (error) {
         console.error('PDF generation error:', error);
+
+        // Make sure to clean up loading overlay if there's an error
+        const existingOverlay = document.querySelector('div[style*="position: fixed"][style*="zIndex: 9999"]');
+        if (existingOverlay && existingOverlay.parentNode) {
+            existingOverlay.parentNode.removeChild(existingOverlay);
+        }
+
         alert('Wystąpił błąd podczas generowania PDF. Spróbuj ponownie.');
     }
 };
