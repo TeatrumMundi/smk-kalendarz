@@ -117,7 +117,14 @@ export const exportToPDF = async (personalInfo: PersonalInfo) => {
                     ['color', 'backgroundColor', 'borderColor'].forEach(prop => {
                         const value = style[prop as keyof CSSStyleDeclaration] as string;
                         if (value && value.includes('oklch')) {
-                            el.style[prop] = prop === 'color' ? '#000000' : '#ffffff';
+                            // Fix: Use type assertion for the property
+                            if (prop === 'color') {
+                                el.style.color = '#000000';
+                            } else if (prop === 'backgroundColor') {
+                                el.style.backgroundColor = '#ffffff';
+                            } else if (prop === 'borderColor') {
+                                el.style.borderColor = '#ffffff';
+                            }
                         }
                     });
 

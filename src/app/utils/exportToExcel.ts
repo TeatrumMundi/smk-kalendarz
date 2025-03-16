@@ -1,10 +1,9 @@
-﻿import * as XLSX from 'xlsx';
-import {ColoredRange} from "@/app/types/Period";
-import {getWorkingDaysInRange} from "@/app/utils/getWorkingDaysInRange";
+﻿import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+import { ColoredRange } from "@/app/types/Period";
+import { getWorkingDaysInRange } from "@/app/utils/getWorkingDaysInRange";
 
-type WorksheetData = Array<Array<string | number>>;
-
-export const exportToExcel = (
+export const exportToExcel = async (
     coloredRanges: ColoredRange[],
     _periods: Array<{ start: string; end: string }>, // Prefix with underscore to indicate it's not used
     personalInfo: { firstName: string, lastName: string }
@@ -36,35 +35,41 @@ export const exportToExcel = (
             workingDaysByType[range.type] += workingDays;
         });
 
-        // Prepare data for Excel
-        const worksheetData: WorksheetData = [];
+        // Create a new workbook
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Statystyki');
 
-        // Add header with personal info
-        worksheetData.push([`Statystyki dla: ${personalInfo.firstName} ${personalInfo.lastName}`]);
-        worksheetData.push([]);  // Empty row
-
-        // Add data for each type
-        worksheetData.push(['Typ', 'Liczba dni (roboczych)']);
-        Object.keys(workingDaysByType).forEach(type => {
-            worksheetData.push([type, workingDaysByType[type]]);
-        });
-
-        // Create workbook and worksheet
-        const workbook = XLSX.utils.book_new();
-        const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-
-        // Set column widths (A and B columns to 160 pixels)
-        worksheet['!cols'] = [
-            {wch: 20},  // A column width (approximately 160 pixels)
-            {wch: 20}   // B column width (approximately 160 pixels)
+        // Set column widths
+        worksheet.columns = [
+            { header: '', key: 'type', width: 20 },
+            { header: '', key: 'days', width: 20 }
         ];
 
-        // Add worksheet to workbook
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Statystyki');
+        // Add header with personal info
+        worksheet.addRow([`Statystyki dla: ${personalInfo.firstName} ${personalInfo.lastName}`]);
+        worksheet.addRow([]); // Empty row
+
+        // Add data for each type
+        worksheet.addRow(['Typ', 'Liczba dni (roboczych)']);
+
+        Object.keys(workingDaysByType).forEach(type => {
+            worksheet.addRow([type, workingDaysByType[type]]);
+        });
+
+        // Apply some styling
+        worksheet.getCell('A1').font = { bold: true, size: 14 };
+        worksheet.getCell('A3').font = { bold: true };
+        worksheet.getCell('B3').font = { bold: true };
 
         // Generate Excel file
         const fileName = `statystyki_${personalInfo.firstName}_${personalInfo.lastName}.xlsx`;
-        XLSX.writeFile(workbook, fileName);
+
+        // Write to buffer
+        const buffer = await workbook.xlsx.writeBuffer();
+
+        // Use file-saver to save the file
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        saveAs(blob, fileName);
 
     } catch (error) {
         console.error('Failed to export to Excel:', error);
