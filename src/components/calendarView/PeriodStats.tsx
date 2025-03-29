@@ -1,6 +1,13 @@
-﻿import { useState } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { getWorkingDaysInRange } from '@/utils/helpers/getWorkingDaysInRange';
-import {ColoredRange} from "@/types/Period";
+
+interface ColoredRange {
+    start: string;
+    end: string;
+    type: string;
+    color: string;
+    label?: string;
+}
 
 interface PeriodStatsProps {
     coloredRanges: ColoredRange[];
@@ -19,59 +26,36 @@ export const PeriodStats = ({
                             }: PeriodStatsProps) => {
     const [copySuccess, setCopySuccess] = useState(false);
 
-    // Get the start and end dates of the current period
+    useEffect(() => {
+        console.log("Aktualne coloredRanges:", coloredRanges);
+    }, [coloredRanges]);
+
+
     const periodStart = periods[parseInt(periodIndex)].start;
     const periodEnd = periods[parseInt(periodIndex)].end;
 
-    // Parse period dates for comparison
     const periodStartDate = new Date(periodStart);
     const periodEndDate = new Date(periodEnd);
 
-    // Filter ranges that fall within the period's date range
     const filteredRanges = coloredRanges.filter(range => {
-        // Parse the range start date
         const separator = range.start.includes('/') ? '/' : '.';
         const [dayStart, monthStart, yearStart] = range.start.split(separator).map(Number);
         const rangeStartDate = new Date(yearStart, monthStart - 1, dayStart);
 
-        // Parse the range end date
         const [dayEnd, monthEnd, yearEnd] = range.end.split(separator).map(Number);
         const rangeEndDate = new Date(yearEnd, monthEnd - 1, dayEnd);
 
-        // Check if the range overlaps with the period
         return (rangeStartDate <= periodEndDate && rangeEndDate >= periodStartDate);
     });
 
     const groupedRanges = filteredRanges.reduce((acc, range) => {
-        const key = range.label ? `${range.label} (${range.type})` : range.type;
+        const key = range.type;
         if (!acc[key]) {
             acc[key] = [];
         }
         acc[key].push(range);
         return acc;
     }, {} as Record<string, ColoredRange[]>);
-
-    const formatStatsForClipboard = (groupedRanges: Record<string, ColoredRange[]>) => {
-        const basicPeriodLine = `Okres podstawowy ilość dni: ${basicPeriodDays}`;
-        const rangesStats = Object.entries(groupedRanges)
-            .map(([type, ranges]) => {
-                const dateRanges = ranges.map(range => {
-                    const startDate = new Date(range.start);
-                    const endDate = new Date(range.end);
-                    if (startDate.toDateString() === endDate.toDateString()) {
-                        return `${range.start}`;
-                    }
-                    return `${range.start}-${range.end}`;
-                }).join(', ');
-                const totalWorkingDays = ranges.reduce((sum, range) =>
-                    sum + getWorkingDaysInRange(range.start, range.end), 0
-                );
-                return `${type}: ${dateRanges} - Łączna ilość dni roboczych: ${totalWorkingDays}`;
-            })
-            .join('\n');
-
-        return `${basicPeriodLine}\n${rangesStats}`;
-    };
 
     const totalWorkingDays = getWorkingDaysInRange(periodStart, periodEnd);
     const coloredRangeDays = filteredRanges.reduce((sum, range) => {
@@ -81,12 +65,21 @@ export const PeriodStats = ({
 
     const basicPeriodDays = totalWorkingDays - coloredRangeDays;
 
+    const formatStatsForClipboard = (grouped: Record<string, ColoredRange[]>) => {
+        const basicLine = `Okres podstawowy ilość dni: ${basicPeriodDays}`;
+        const lines = Object.entries(grouped).map(([type, ranges]) => {
+            const dateRanges = ranges.map(r => r.start === r.end ? r.start : `${r.start}-${r.end}`).join(', ');
+            const days = ranges.reduce((sum, r) => sum + getWorkingDaysInRange(r.start, r.end), 0);
+            const label = ranges[0].label ? ` (${ranges[0].label})` : '';
+            return `${type}${label}: ${dateRanges} - Łączna ilość dni roboczych: ${days}`;
+        });
+        return [basicLine, ...lines].join('\n');
+    };
+
     const handleLegendClick = (type: string) => {
         if (selectedType === type) {
-            // If the same type is clicked again, deselect it
             onSelectType(null);
         } else {
-            // Otherwise, select the new type
             onSelectType(type);
         }
     };
@@ -111,32 +104,29 @@ export const PeriodStats = ({
                     {copySuccess ? 'Skopiowano!' : 'Kopiuj statystyki'}
                 </button>
             </div>
+
             <div className="mb-6">
                 <span className="text-lg font-semibold text-white">
                     Okres podstawowy ilość dni: <span className="text-blue-400">{basicPeriodDays}</span>
                 </span>
             </div>
-            {Object.entries(groupedRanges).map(([labelWithType, ranges]) => {
+
+            {Object.entries(groupedRanges).map(([type, ranges]) => {
+                const isSelected = selectedType === type;
                 const totalWorkingDays = ranges.reduce((sum, range) =>
                     sum + getWorkingDaysInRange(range.start, range.end), 0
                 );
+
                 const dateRangesString = ranges.map(range => {
-                    // Parse the dates correctly using the separator
                     const separator = range.start.includes('/') ? '/' : '.';
                     const [startDay, startMonth, startYear] = range.start.split(separator).map(Number);
                     const [endDay, endMonth, endYear] = range.end.split(separator).map(Number);
-                    
                     const startDate = new Date(startYear, startMonth - 1, startDay);
                     const endDate = new Date(endYear, endMonth - 1, endDay);
-                    
-                    // Compare dates using getTime() for accurate comparison
-                    if (startDate.getTime() === endDate.getTime()) {
-                        return range.start;
-                    }
-                    return `${range.start}-${range.end}`;
+                    return startDate.getTime() === endDate.getTime()
+                        ? range.start
+                        : `${range.start}-${range.end}`;
                 }).join(', ');
-                const type = ranges[0].type; // ← wyciągamy oryginalny typ z zakresu
-                const isSelected = selectedType === type;
 
                 return (
                     <div
@@ -147,7 +137,8 @@ export const PeriodStats = ({
                         <div className="flex items-center space-x-3 mb-2">
                             <div className={`w-4 h-4 ${ranges[0].color} rounded-full shadow-sm`}></div>
                             <span className="text-white font-medium">
-                                {labelWithType}: <span className="text-gray-300">{dateRangesString}</span> - Łączna ilość dni roboczych: <span className="text-blue-400">{totalWorkingDays}</span>
+                                {type}{ranges[0].label ? ` (${ranges[0].label})` : ''}:
+                                <span className="text-gray-300"> {dateRangesString}</span> - Łączna ilość dni roboczych: <span className="text-blue-400">{totalWorkingDays}</span>
                             </span>
                         </div>
                     </div>
