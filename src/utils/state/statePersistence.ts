@@ -1,6 +1,6 @@
 ﻿// Add these functions to src/app/utils/statePersistence.ts
 
-import {ColoredRange, Period} from "@/app/types/Period";
+import {ColoredRange, Period} from "@/types/Period";
 
 interface AppState {
     periods: Period[];

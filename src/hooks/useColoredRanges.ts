@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
-import { ColoredRange } from '@/app/types/Period';
-import { isDateInRange } from '@/app/utils/dateHelpers';
+import { ColoredRange } from '@/types/Period';
+import { isDateInRange } from '@/utils/helpers/dateHelpers';
 
 export const useColoredRanges = () => {
     const [coloredRanges, setColoredRanges] = useState<ColoredRange[]>(() => {

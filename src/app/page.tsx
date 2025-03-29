@@ -1,24 +1,24 @@
-"use client"
+﻿"use client"
 
 import { useMemo } from "react";
-import { isPolishHoliday } from "@/app/utils/polishHolidays";
-import { getWorkingDaysInMonth } from "@/app/utils/getWorkingDays";
-import { generateCalendarData } from "@/app/utils/generateCalendarData";
-import ErrorPopup from "@/app/components/ErrorPopup";
-import { PeriodStats } from '@/app/components/PeriodStats';
-import { calculateDays } from "@/app/utils/calculateDays";
+import { isPolishHoliday } from "@/utils/helpers/polishHolidays";
+import { getWorkingDaysInMonth } from "@/utils/helpers/getWorkingDays";
+import { generateCalendarData } from "@/utils/calendar/generateCalendarData";
+import ErrorPopup from "@/components/errors/ErrorPopup";
+import { PeriodStats } from '@/components/calendarView/PeriodStats';
+import { calculateDays } from "@/utils/helpers/calculateDays";
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from "@vercel/speed-insights/next"
-import { handleDayClick as handleDayClickUtil } from "@/app/utils/handleDayClick";
-import ResetButton from "@/app/components/buttons/resetButton";
-import PDFButton from "@/app/components/buttons/PDFButton";
-import PersonalInfoForm from "@/app/components/personalInfoForm";
-import PeriodInput from "@/app/components/PeriodInput";
-import { useColoredRanges } from '@/app/hooks/useColoredRanges';
-import { usePeriods } from '@/app/hooks/usePeriods';
-import { usePersonalInfo } from '@/app/hooks/usePersonalInfo';
-import ExcelButton from "@/app/components/buttons/excelButton";
-import { legendItems } from '@/app/config/legendConfig';
+import { handleDayClick as handleDayClickUtil } from "@/utils/calendar/handleDayClick";
+import ResetButton from "@/components/buttons/resetButton";
+import PDFButton from "@/components/buttons/PDFButton";
+import PersonalInfoForm from "@/components/calendarView/personalInfoForm";
+import PeriodInput from "@/components/calendarView/PeriodInput";
+import { useColoredRanges } from '@/hooks/useColoredRanges';
+import { usePeriods } from '@/hooks/usePeriods';
+import { usePersonalInfo } from '@/hooks/usePersonalInfo';
+import ExcelButton from "@/components/buttons/excelButton";
+import { legendItems } from '@/config/legendConfig';
 
 const getMonthNumber = (monthName: string): number => {
   const months = [

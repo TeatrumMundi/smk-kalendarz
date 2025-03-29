@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import { getWorkingDaysInRange } from '@/app/utils/getWorkingDaysInRange';
+import { getWorkingDaysInRange } from '@/utils/helpers/getWorkingDaysInRange';
 
 interface ColoredRange {
     start: string;

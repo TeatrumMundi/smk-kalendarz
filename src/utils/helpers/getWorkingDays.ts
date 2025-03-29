@@ -1,4 +1,4 @@
-﻿import {isPolishHoliday} from "@/app/utils/polishHolidays";
+﻿import {isPolishHoliday} from "@/utils/helpers/polishHolidays";
 
 export const getWorkingDaysInMonth = (year: number, month: number): number => {
     const startDate = new Date(year, month, 1);

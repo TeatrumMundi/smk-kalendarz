@@ -1,8 +1,8 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { Period, ColoredRange } from '@/app/types/Period';
-import { ValidationResult } from '@/app/utils/validatePeriods';
-import { deletePeriod } from '@/app/utils/deletePeriod';
-import { handleDisplayChange } from '@/app/utils/handleDisplayChange';
+import { Period, ColoredRange } from '@/types/Period';
+import { ValidationResult } from '@/utils/helpers/validatePeriods';
+import { deletePeriod } from '@/utils/actions/deletePeriod';
+import { handleDisplayChange } from '@/utils/calendar/handleDisplayChange';
 
 export const usePeriods = () => {
     const [periods, setPeriods] = useState<Period[]>(() => {

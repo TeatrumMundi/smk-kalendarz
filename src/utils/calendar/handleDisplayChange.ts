@@ -1,5 +1,5 @@
-﻿import { Period } from "@/app/types/Period";
-import { validatePeriods, ValidationResult } from "@/app/utils/validatePeriods";
+﻿import { Period } from "@/types/Period";
+import { validatePeriods, ValidationResult } from "@/utils/helpers/validatePeriods";
 
 export const handleDisplayChange = (
     index: number,

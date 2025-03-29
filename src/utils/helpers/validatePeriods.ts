@@ -1,4 +1,4 @@
-﻿import { Period } from "../types/Period";
+﻿import { Period } from "@/types/Period";
 
 export interface ValidationResult {
     isValid: boolean;

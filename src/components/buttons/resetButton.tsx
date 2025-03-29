@@ -1,6 +1,6 @@
 ﻿import React from 'react';
-import { Period } from "@/app/types/Period";
-import { ColoredRange } from "@/app/types/Period";
+import { Period } from "@/types/Period";
+import { ColoredRange } from "@/types/Period";
 
 interface ResetButtonProps {
     setPeriods: React.Dispatch<React.SetStateAction<Period[]>>;

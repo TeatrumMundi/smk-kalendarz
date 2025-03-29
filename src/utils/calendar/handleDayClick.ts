@@ -1,6 +1,6 @@
-﻿import { ColoredRange } from "@/app/types/Period";
-import { isDateInRange } from "@/app/utils/dateHelpers";
-import { isPolishHoliday } from "@/app/utils/polishHolidays";
+﻿import { ColoredRange } from "@/types/Period";
+import { isDateInRange } from "@/utils/helpers/dateHelpers";
+import { isPolishHoliday } from "@/utils/helpers/polishHolidays";
 import React from "react";
 
 type RangeSelection = {

@@ -1,4 +1,4 @@
-﻿import {isPolishHoliday} from "@/app/utils/polishHolidays";
+﻿import {isPolishHoliday} from "@/utils/helpers/polishHolidays";
 
 export const calculateWorkingDaysInRange = (start: Date, end: Date): number => {
     let workingDays = 0;

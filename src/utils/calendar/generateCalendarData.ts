@@ -1,4 +1,4 @@
-﻿import { Period } from "@/app/types/Period";
+﻿import { Period } from "@/types/Period";
 
 export const generateCalendarData = (validPeriods: Period[]) => {
     // Find min and max dates to determine calendar range

@@ -1,6 +1,6 @@
 ﻿import React from 'react';
-import { exportToExcel } from '@/app/utils/exportToExcel';
-import { ColoredRange } from '@/app/types/Period';
+import { exportToExcel } from '@/utils/exportUtility/exportToExcel';
+import { ColoredRange } from '@/types/Period';
 
 interface ExportExcelButtonProps {
     personalInfo: { firstName: string, lastName: string };

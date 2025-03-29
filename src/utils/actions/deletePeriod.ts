@@ -1,4 +1,4 @@
-﻿import { Period } from "@/app/types/Period";
+﻿import { Period } from "@/types/Period";
 
 interface ColoredRange {
     start: string;

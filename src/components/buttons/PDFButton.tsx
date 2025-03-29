@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { exportToPDF } from "@/app/utils/exportToPDF";
+import { exportToPDF } from "@/utils/exportUtility/exportToPDF";
 
 interface ExportPDFButtonProps {
     personalInfo: {

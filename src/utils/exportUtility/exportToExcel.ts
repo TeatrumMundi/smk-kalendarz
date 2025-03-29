@@ -1,8 +1,8 @@
 ﻿import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import { ColoredRange } from "@/app/types/Period";
-import { getWorkingDaysInRange } from "@/app/utils/getWorkingDaysInRange";
-import { createLoadingOverlay, removeExistingOverlays } from "@/app/utils/loadingOverlay";
+import { ColoredRange } from "@/types/Period";
+import { getWorkingDaysInRange } from "@/utils/helpers/getWorkingDaysInRange";
+import { createLoadingOverlay, removeExistingOverlays } from "@/utils/animations/loadingOverlay";
 
 /**
  * Formats a date string to DD/MM/YYYY if it's in ISO format
