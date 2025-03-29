@@ -70,12 +70,13 @@ export const handleDayClick = (
         });
 
         if (overlappingRanges.length === 0) {
-            // No overlaps, create a new range normally
+            const label = prompt("Nadaj nazwę temu zakresowi (opcjonalnie):")?.trim();
             const newRange: ColoredRange = {
                 start: formatDate(finalStart),
                 end: formatDate(finalEnd),
                 type: selectedLegendType,
-                color: selectedLegendColor
+                color: selectedLegendColor,
+                label: label || undefined
             };
 
             setColoredRanges([...coloredRanges, newRange]);

@@ -1,12 +1,6 @@
 ﻿import { useState } from 'react';
 import { getWorkingDaysInRange } from '@/utils/helpers/getWorkingDaysInRange';
-
-interface ColoredRange {
-    start: string;
-    end: string;
-    type: string;
-    color: string;
-}
+import {ColoredRange} from "@/types/Period";
 
 interface PeriodStatsProps {
     coloredRanges: ColoredRange[];
@@ -49,10 +43,11 @@ export const PeriodStats = ({
     });
 
     const groupedRanges = filteredRanges.reduce((acc, range) => {
-        if (!acc[range.type]) {
-            acc[range.type] = [];
+        const key = range.label ? `${range.label} (${range.type})` : range.type;
+        if (!acc[key]) {
+            acc[key] = [];
         }
-        acc[range.type].push(range);
+        acc[key].push(range);
         return acc;
     }, {} as Record<string, ColoredRange[]>);
 
@@ -121,7 +116,7 @@ export const PeriodStats = ({
                     Okres podstawowy ilość dni: <span className="text-blue-400">{basicPeriodDays}</span>
                 </span>
             </div>
-            {Object.entries(groupedRanges).map(([type, ranges]) => {
+            {Object.entries(groupedRanges).map(([labelWithType, ranges]) => {
                 const totalWorkingDays = ranges.reduce((sum, range) =>
                     sum + getWorkingDaysInRange(range.start, range.end), 0
                 );
@@ -140,6 +135,7 @@ export const PeriodStats = ({
                     }
                     return `${range.start}-${range.end}`;
                 }).join(', ');
+                const type = ranges[0].type; // ← wyciągamy oryginalny typ z zakresu
                 const isSelected = selectedType === type;
 
                 return (
@@ -151,7 +147,7 @@ export const PeriodStats = ({
                         <div className="flex items-center space-x-3 mb-2">
                             <div className={`w-4 h-4 ${ranges[0].color} rounded-full shadow-sm`}></div>
                             <span className="text-white font-medium">
-                                {type}: <span className="text-gray-300">{dateRangesString}</span> - Łączna ilość dni roboczych: <span className="text-blue-400">{totalWorkingDays}</span>
+                                {labelWithType}: <span className="text-gray-300">{dateRangesString}</span> - Łączna ilość dni roboczych: <span className="text-blue-400">{totalWorkingDays}</span>
                             </span>
                         </div>
                     </div>

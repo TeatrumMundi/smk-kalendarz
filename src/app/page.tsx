@@ -7,8 +7,6 @@ import { generateCalendarData } from "@/utils/calendar/generateCalendarData";
 import ErrorPopup from "@/components/errors/ErrorPopup";
 import { PeriodStats } from '@/components/calendarView/PeriodStats';
 import { calculateDays } from "@/utils/helpers/calculateDays";
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from "@vercel/speed-insights/next"
 import { handleDayClick as handleDayClickUtil } from "@/utils/calendar/handleDayClick";
 import ResetButton from "@/components/buttons/resetButton";
 import PDFButton from "@/components/buttons/PDFButton";
@@ -122,7 +120,7 @@ export default function Home() {
     // If the utility function returns null, don't change the selected type
     if (newSelectedType === null) return;
 
-    // Otherwise set it to the returned value (which could be null to reset it)
+    // Otherwise, set it to the returned value (which could be null to reset it)
     setSelectedLegendType(newSelectedType);
   };
 
@@ -252,8 +250,6 @@ export default function Home() {
                     />
                   </div>
               ))}
-              <SpeedInsights />
-              <Analytics />
             </div>
         ) : (
             <div className="mt-6 text-gray-400">

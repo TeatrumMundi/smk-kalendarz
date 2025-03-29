@@ -7,4 +7,5 @@ export interface ColoredRange {
     end: string;
     type: string;
     color: string;
+    label?: string;
 }
