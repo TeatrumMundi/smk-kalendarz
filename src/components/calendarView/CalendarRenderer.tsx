@@ -1,11 +1,11 @@
 ﻿import { getWorkingDaysInMonth } from "@/utils/helpers/getWorkingDays";
 import { calculateDays } from "@/utils/helpers/calculateDays";
 import { isPolishHoliday } from "@/utils/helpers/polishHolidays";
-import { legendItems } from '@/config/legendConfig';
 import { PDFButton, ExcelButton, ResetButton } from "@/components/buttons";
 import { PeriodStats } from "@/components/calendarView";
 import React from "react";
 import {ColoredRange, Period} from "@/types/Period";
+import {LegendSelector} from "@/components/calendarView/LegendSelector";
 
 interface CalendarDay {
     day: number | null;
@@ -68,57 +68,48 @@ export function CalendarRenderer({
         <div id="calendar-container" className="mt-6">
             {Object.entries(periodGroups).map(([periodIndex, months]) => (
                 <div key={periodIndex} className="mb-8">
-                    <h2 className="text-xl font-bold mb-4 border-b pb-2 text-gray-100">
+                    <h2 className="text-xl font-bold mb-2 border-b pb-2 text-gray-100">
                         Rok {parseInt(periodIndex) + 1}
                         {periods[parseInt(periodIndex)].start && periods[parseInt(periodIndex)].end && (
                             <span className="ml-2 text-gray-400">
-                Ilość dni: {calculateDays(periods[parseInt(periodIndex)].start, periods[parseInt(periodIndex)].end)}
-              </span>
+                                Ilość dni: {calculateDays(periods[parseInt(periodIndex)].start, periods[parseInt(periodIndex)].end)}
+                            </span>
                         )}
                     </h2>
 
-                    <div className="mt-4 flex flex-nowrap space-x-2 p-4 bg-gray-800 rounded-lg overflow-x-auto justify-center">
-                        {legendItems.map((item, index) => (
-                            <div
-                                key={index}
-                                className={`flex items-center whitespace-nowrap cursor-pointer p-2 rounded transition-all
-                  ${selectedLegendType === item.label ? 'bg-gray-700' : 'hover:bg-gray-700'}`}
-                                onClick={() => setSelectedLegendType(selectedLegendType === item.label ? null : item.label)}
-                            >
-                                <div className={`w-3 h-3 ${item.color} rounded mr-2`}></div>
-                                <span className="text-xs text-gray-100">{item.label}</span>
-                            </div>
-                        ))}
-                    </div>
+                    <LegendSelector
+                        selectedLegendType={selectedLegendType}
+                        setSelectedLegendTypeAction={setSelectedLegendType}
+                    />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-3">
                         {months.map((month, monthIndex) => (
-                            <div key={monthIndex} className="border rounded-xs shadow p-2 bg-gray-800 hover:shadow-lg transition-all">
+                            <div key={monthIndex} className="rounded-xs shadow p-1.5 bg-gray-800 hover:shadow-lg transition-all">
                                 <h3 className="font-bold mb-2 text-gray-100">
                                     {month.name} {month.year}: {getWorkingDaysInMonth(month.year, getMonthNumber(month.name))} dni pracujących
                                 </h3>
                                 <div className="grid grid-cols-7 gap-1">
-                                    {['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'].map((day, i) => (
+                                    {['PN', 'WT', 'ŚR', 'CZ', 'PT', 'SB', 'ND'].map((day : string, i : number) => (
                                         <div key={i} className="text-xs font-medium text-gray-400 text-center">{day}</div>
                                     ))}
                                     {month.days.map((day, dayIndex) => {
                                         const currentDate = day.day ? new Date(month.year, getMonthNumber(month.name), day.day) : null;
-                                        const isWeekend = dayIndex % 7 >= 5;
-                                        const isHoliday = currentDate ? isPolishHoliday(currentDate) : false;
+                                        const isWeekend : boolean = dayIndex % 7 >= 5;
+                                        const isHoliday : boolean = currentDate ? isPolishHoliday(currentDate) : false;
                                         const coloredRange = currentDate ? isDateInColoredRange(currentDate, getMonthNumber(month.name), month.year) : null;
-                                        const isInBasePeriod = currentDate ? isDateInBasePeriod(currentDate, periodIndex) : false;
+                                        const isInBasePeriod : boolean = currentDate ? isDateInBasePeriod(currentDate, periodIndex) : false;
 
                                         return (
                                             <div
                                                 key={dayIndex}
                                                 className={`h-8 text-md border p-0.5 rounded-xs flex justify-center items-center
-                          ${isWeekend ? 'bg-red-900' : ''}
-                          ${isHoliday ? 'bg-orange-900' : ''}
-                          ${coloredRange ? `${coloredRange.color} ${!(isWeekend || isHoliday) ? 'cursor-pointer hover:opacity-50' : ''}` : ''}
-                          ${!isInBasePeriod ? 'bg-gray-600' : ''}
-                          ${isInBasePeriod && selectedLegendType && !(isWeekend || isHoliday) ? 'hover:opacity-50 cursor-pointer' : ''}
-                          ${rangeSelection.start && currentDate?.getTime() === rangeSelection.start.getTime() ? 'bg-gray-600' : ''}
-                          transition-all`}
+                                                    ${isWeekend ? 'bg-red-900 cursor-not-allowed' : ''}
+                                                    ${isHoliday ? 'bg-orange-900 cursor-not-allowed' : ''}
+                                                    ${!isInBasePeriod ? 'bg-gray-600 cursor-not-allowed' : ''}
+                                                    ${coloredRange ? `${coloredRange.color} ${!(isWeekend || isHoliday) ? 'cursor-pointer hover:opacity-50' : ''}` : ''}
+                                                    ${isInBasePeriod && selectedLegendType && !(isWeekend || isHoliday) ? 'cursor-pointer hover:opacity-50' : ''}
+                                                    ${rangeSelection.start && currentDate?.getTime() === rangeSelection.start.getTime() ? 'bg-gray-600' : ''}
+                                                    transition-all`}
                                                 onClick={() => currentDate && isInBasePeriod && !(isWeekend || isHoliday) && handleDayClick(currentDate)}
                                             >
                                                 {day.day && (

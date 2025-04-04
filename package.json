@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.2.5",
     "@types/node": "^22.13.10",
     "date-fns": "^4.1.0",
     "exceljs": "^4.4.0",

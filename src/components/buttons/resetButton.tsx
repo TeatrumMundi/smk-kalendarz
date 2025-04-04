@@ -22,7 +22,13 @@ const ResetButton: React.FC<ResetButtonProps> = ({setPeriods, setDisplayPeriods,
     return (
         <button
             onClick={handleReset}
-            className="fixed bottom-4 left-4 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all"
+            className="
+        fixed bottom-4 left-4
+        bg-gradient-to-r from-gray-500 to-gray-700
+        hover:from-gray-600 hover:to-gray-800
+        text-white font-bold py-2 px-4
+        rounded-xs shadow-lg transition-all duration-300 ease-out
+    "
         >
             Resetuj dane
         </button>

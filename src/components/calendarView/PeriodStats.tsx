@@ -1,5 +1,6 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useEffect } from 'react';
 import { getWorkingDaysInRange } from '@/utils/helpers/getWorkingDaysInRange';
+import {CopyStatsButton} from "@/components/buttons/CopyStatsButton";
 
 interface ColoredRange {
     start: string;
@@ -24,7 +25,6 @@ export const PeriodStats = ({
                                 selectedType,
                                 onSelectType
                             }: PeriodStatsProps) => {
-    const [copySuccess, setCopySuccess] = useState(false);
 
     useEffect(() => {
         console.log("Aktualne coloredRanges:", coloredRanges);
@@ -66,7 +66,7 @@ export const PeriodStats = ({
     const basicPeriodDays = totalWorkingDays - coloredRangeDays;
 
     const formatStatsForClipboard = (grouped: Record<string, ColoredRange[]>) => {
-        const basicLine = `Okres podstawowy ilość dni: ${basicPeriodDays}`;
+        const basicLine = `Okres podstawowy ilość dni: ${totalWorkingDays} - ${coloredRanges} = ${basicPeriodDays}`;
         const lines = Object.entries(grouped).map(([type, ranges]) => {
             const dateRanges = ranges.map(r => r.start === r.end ? r.start : `${r.start}-${r.end}`).join(', ');
             const days = ranges.reduce((sum, r) => sum + getWorkingDaysInRange(r.start, r.end), 0);
@@ -85,30 +85,18 @@ export const PeriodStats = ({
     };
 
     return (
-        <div className="mt-4 p-6 bg-gray-800 rounded-lg shadow-lg">
-            <div className="flex items-center justify-between mb-6">
+        <div className="mt-4 p-3 bg-gray-800 rounded-xs shadow-lg">
+            <div className="flex items-center justify-between mb-3">
                 <h4 className="text-xl font-bold text-white">Statystyki okresów</h4>
-                <button
-                    onClick={async () => {
-                        const statsText = formatStatsForClipboard(groupedRanges);
-                        await navigator.clipboard.writeText(statsText);
-                        setCopySuccess(true);
-                        setTimeout(() => setCopySuccess(false), 3000);
-                    }}
-                    className={`
-                        transition-all duration-300 ease-out
-                        ${copySuccess ? 'bg-green-500' : 'bg-blue-600 hover:bg-blue-700'} 
-                        text-white px-4 py-2 rounded-lg text-sm font-medium
-                    `}
-                >
-                    {copySuccess ? 'Skopiowano!' : 'Kopiuj statystyki'}
-                </button>
-            </div>
-
-            <div className="mb-6">
-                <span className="text-lg font-semibold text-white">
-                    Okres podstawowy ilość dni: <span className="text-blue-400">{basicPeriodDays}</span>
-                </span>
+                <h4 className="text-xl font-bold text-white">
+                    <span className="text-lg font-semibold text-white ">
+                        Okres podstawowy:&nbsp;
+                        <span className="text-blue-400">{totalWorkingDays}</span> -
+                        <span className="text-red-400"> {coloredRangeDays}</span> =
+                        <span className="text-green-400"> {basicPeriodDays}</span>
+                    </span>
+                </h4>
+                <CopyStatsButton getStatsTextAction={() => formatStatsForClipboard(groupedRanges)} />
             </div>
 
             {Object.entries(groupedRanges).map(([type, ranges]) => {
@@ -131,11 +119,11 @@ export const PeriodStats = ({
                 return (
                     <div
                         key={type}
-                        className={`mb-4 p-2 rounded-md cursor-pointer transition-colors duration-200 ${isSelected ? 'bg-gray-700' : 'hover:bg-gray-700'}`}
+                        className={`mb-4 p-2 rounded-xs cursor-pointer transition-colors duration-200 ${isSelected ? 'bg-gray-700' : 'hover:bg-gray-700'}`}
                         onClick={() => handleLegendClick(type)}
                     >
                         <div className="flex items-center space-x-3 mb-2">
-                            <div className={`w-4 h-4 ${ranges[0].color} rounded-full shadow-sm`}></div>
+                            <div className={`w-4 h-4 ${ranges[0].color} rounded-xs shadow-sm`}></div>
                             <span className="text-white font-medium">
                                 {type}{ranges[0].label ? ` (${ranges[0].label})` : ''}:
                                 <span className="text-gray-300"> {dateRangesString}</span> - Łączna ilość dni roboczych: <span className="text-blue-400">{totalWorkingDays}</span>

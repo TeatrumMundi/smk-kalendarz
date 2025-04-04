@@ -107,7 +107,6 @@ export default function Home() {
 
   return (
       <div className="max-w-full mx-auto p-4 text-center relative bg-gray-900 min-h-screen text-gray-100">
-        <h1 className="text-2xl font-bold mb-6">Wprowadź dane</h1>
         <PersonalInfoForm
             personalInfo={personalInfo}
             handlePersonalInfoChange={handlePersonalInfoChange}
