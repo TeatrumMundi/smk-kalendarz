@@ -9,12 +9,7 @@ interface ResetButtonProps {
     setPersonalInfo: React.Dispatch<React.SetStateAction<{ firstName: string; lastName: string }>>;
 }
 
-const ResetButton: React.FC<ResetButtonProps> = ({
-                                                     setPeriods,
-                                                     setDisplayPeriods,
-                                                     setColoredRanges,
-                                                     setPersonalInfo
-                                                 }) => {
+const ResetButton: React.FC<ResetButtonProps> = ({setPeriods, setDisplayPeriods, setColoredRanges, setPersonalInfo}) => {
     const handleReset = () => {
         if (window.confirm('Czy na pewno chcesz zresetować wszystkie dane? Ta akcja jest nieodwracalna.')) {
             setPeriods([{ start: "", end: "" }]);
