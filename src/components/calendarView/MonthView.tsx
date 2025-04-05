@@ -3,6 +3,7 @@ import { CalendarMonth } from "./CalendarRenderer";
 import { isPolishHoliday } from "@/utils/helpers/polishHolidays";
 import { ColoredRange } from "@/types/Period";
 import DayCell from "@/components/calendarView/DayCell";
+import {calculateWorkingDaysInRange} from "@/utils/helpers/calculateWorkingDaysInRange";
 
 interface MonthViewProps {
     month: CalendarMonth;
@@ -38,10 +39,17 @@ const MonthView: React.FC<MonthViewProps> = ({
         "lipiec", "sierpień", "wrzesień", "październik", "listopad", "grudzień"
     ].indexOf(month.name.toLowerCase());
 
+    const startOfMonth = new Date(month.year, monthNumber, 1);
+    const endOfMonth = new Date(month.year, monthNumber + 1, 0);
+    const workingDaysInMonth = calculateWorkingDaysInRange(startOfMonth, endOfMonth);
+
     return (
         <div className="rounded-xs shadow p-1.5 bg-gray-800 hover:shadow-lg transition-all">
             <h3 className="font-bold mb-2 text-gray-100">
                 {month.name} {month.year}
+                <span className="ml-2 text-sm text-blue-400 font-normal">
+                    ({workingDaysInMonth} dni roboczych)
+                </span>
             </h3>
             <div className="grid grid-cols-7 gap-1">
                 {["PN", "WT", "ŚR", "CZ", "PT", "SB", "ND"].map((day, i) => (
