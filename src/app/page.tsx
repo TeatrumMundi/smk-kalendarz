@@ -7,9 +7,10 @@ import { useColoredRanges } from "@/hooks/useColoredRanges";
 import { usePeriods } from "@/hooks/usePeriods";
 import { usePersonalInfo } from "@/hooks/usePersonalInfo";
 import { PersonalInfoForm, PeriodInput } from "@/components/calendarView";
-import { CalendarRenderer } from "@/components/calendarView/CalendarRenderer";
+
 import {legendItems} from "@/config/legendConfig";
 import ErrorPopup from "@/components/errors/ErrorPopup";
+import CalendarRenderer from "@/components/calendarView/CalendarRenderer";
 export default function Home() {
   const {
     coloredRanges,

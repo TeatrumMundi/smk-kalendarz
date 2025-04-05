@@ -77,7 +77,9 @@ export const handleDayClick = (
 
                     if (segmentStart <= segmentEnd) {
                         const shouldAskForLabel = selectedLegendType === "Staże" || selectedLegendType === "Kursy";
-                        const label = shouldAskForLabel ? prompt("Nadaj nazwę temu zakresowi (opcjonalnie):")?.trim() : undefined;
+                        const label = shouldAskForLabel
+                            ? prompt(`Nazwa dla zakresu ${formatDate(segmentStart)} - ${formatDate(segmentEnd)} (opcjonalnie):`)?.trim()
+                            : undefined;
 
                         const newRange: ColoredRange = {
                             start: formatDate(segmentStart),
@@ -100,7 +102,9 @@ export const handleDayClick = (
 
         if (segmentStart !== null) {
             const shouldAskForLabel = selectedLegendType === "Staże" || selectedLegendType === "Kursy";
-            const label = shouldAskForLabel ? prompt("Nadaj nazwę temu zakresowi (opcjonalnie):")?.trim() : undefined;
+            const label = shouldAskForLabel
+                ? prompt(`Nazwa dla zakresu ${formatDate(segmentStart)} - ${formatDate(finalEnd)} (opcjonalnie):`)?.trim()
+                : undefined;
 
             const newRange: ColoredRange = {
                 start: formatDate(segmentStart),
