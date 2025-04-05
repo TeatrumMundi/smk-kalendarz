@@ -1,17 +1,24 @@
 ﻿import { parseDateString } from "./dateHelpers";
-import {GroupedRangeResult, ColoredRange} from "@/types/Period";
-import {getWorkingDaysInRange} from "@/utils/helpers/getWorkingDaysInRange";
+import { GroupedRangeResult, ColoredRange } from "@/types/Period";
+import { getWorkingDaysInRange } from "@/utils/helpers/getWorkingDaysInRange";
 
 /**
- * Calculates the working-day index of a given date within a colored range.
- * Returns null if the date is outside the range.
+ * Calculates the working-day index (1-based) of a given date within a colored range.
+ * Returns `null` if the date is before the range starts.
+ *
+ * Example: For a range starting on 01.01.2024 (Monday),
+ *   - 01.01.2024 → 1- * 02.01.2024 → 2
+ *   - Weekend → skipped
+ *
+ * @param {Date} date - Date to check the index for
+ * @param {string} rangeStartStr - Start date of the range (e.g. "01.01.2024")
+ * @returns {number | null} Working day index or null if date is outside range
  */
 export const calculateRangeIndex = (
     date: Date,
     rangeStartStr: string
 ): number | null => {
     const rangeStart = parseDateString(rangeStartStr);
-
     if (date < rangeStart) return null;
 
     let count = 0;
@@ -29,8 +36,17 @@ export const calculateRangeIndex = (
 };
 
 /**
- * Groups and summarizes colored ranges for a given period.
- * Calculates working days, filters overlapping ranges, and groups them by type.
+ * Groups and summarizes all colored ranges that intersect with a given period.
+ * It returns:
+ * - Grouped ranges by their `type`
+ * - Total number of working days in the base period
+ * - Total working days inside colored ranges
+ * - Remaining working days in the base period
+ *
+ * @param {ColoredRange[]} coloredRanges - All user-defined colored ranges
+ * @param {string} periodStart - Start of the base period (any accepted format)
+ * @param {string} periodEnd - End of the base period
+ * @returns {GroupedRangeResult} Object with grouped data and stats
  */
 export const groupAndSummarizeRanges = (
     coloredRanges: ColoredRange[],
@@ -40,12 +56,14 @@ export const groupAndSummarizeRanges = (
     const periodStartDate = parseDateString(periodStart);
     const periodEndDate = parseDateString(periodEnd);
 
+    // 🎯 Filter only those colored ranges that intersect with the period
     const filteredRanges = coloredRanges.filter((range) => {
         const rangeStart = parseDateString(range.start);
         const rangeEnd = parseDateString(range.end);
         return rangeStart <= periodEndDate && rangeEnd >= periodStartDate;
     });
 
+    // 📦 Group by range type (e.g., Work, Holiday)
     const grouped = filteredRanges.reduce((acc, range) => {
         const key = range.type;
         if (!acc[key]) acc[key] = [];
@@ -69,8 +87,20 @@ export const groupAndSummarizeRanges = (
 };
 
 /**
- * Converts grouped colored ranges into a multiline text summary for clipboard.
- * Includes basic period stats and breakdown per legend type.
+ * Formats the grouped colored range stats into a clean multi-line string,
+ * ready for copying to the clipboard or export.
+ *
+ * Example output:
+ * ```
+ * Okres podstawowy ilość dni: 20-5 = 15
+ * Urlop (delegacja): 03.01.2024-07.01.2024 - 5 dni roboczych
+ * Chorobowe: 09.01.2024 - 1 dni roboczych
+ * ```
+ *
+ * @param {Record<string, ColoredRange[]>} grouped - Grouped colored ranges by type
+ * @param {number} totalWorkingDays - Total working days in base period
+ * @param {number} coloredRangeDays - Working days inside colored ranges
+ * @returns {string} Formatted plain-text summary
  */
 export const formatStatsForClipboard = (
     grouped: Record<string, ColoredRange[]>,
@@ -84,7 +114,8 @@ export const formatStatsForClipboard = (
     const lines = Object.entries(grouped).flatMap(([type, ranges]) =>
         ranges.map((range) => {
             const label = range.label ? ` (${range.label})` : "";
-            const dateRange = range.start === range.end ? range.start : `${range.start}-${range.end}`;
+            const dateRange =
+                range.start === range.end ? range.start : `${range.start}-${range.end}`;
             const days = getWorkingDaysInRange(range.start, range.end);
             return `${type}${label}: ${dateRange} - ${days} dni roboczych`;
         })

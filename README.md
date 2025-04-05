@@ -64,7 +64,7 @@ To run this project locally, follow these steps:
 
 ## Code Structure:
 
-* page.tsx: The main component that handles the UI, state management, and logic for the application.
+* page.tsx: The main part that handles the UI, state management, and logic for the application.
 
 * /utils: Contains utility functions for date manipulation, validation, working day calculations, and PDF export.
 

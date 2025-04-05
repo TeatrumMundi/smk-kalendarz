@@ -1,5 +1,8 @@
 ﻿import { Period } from "@/types/Period";
 
+/**
+ * Structure representing the result of validating a set of periods.
+ */
 export interface ValidationResult {
     isValid: boolean;
     errorMessage: string;
@@ -7,8 +10,15 @@ export interface ValidationResult {
     errorField?: "start" | "end";
 }
 
+/**
+ * Validates whether a date string is in the correct YYYY-MM-DD format
+ * and represents a valid calendar date (e.g., not 2024-02-30).
+ *
+ * @param value - The date string to validate
+ * @returns {boolean} True if the date is valid, false otherwise
+ */
 export const isValidDate = (value: string): boolean => {
-    const regex = /^\d{4}-\d{2}-\d{2}$/; // YYYY-MM-DD
+    const regex = /^\d{4}-\d{2}-\d{2}$/; // Expected format: YYYY-MM-DD
     if (!regex.test(value)) return false;
 
     const [yearStr, monthStr, dayStr] = value.split("-");
@@ -18,6 +28,7 @@ export const isValidDate = (value: string): boolean => {
 
     const date = new Date(year, month - 1, day);
 
+    // Ensure the parsed date matches exactly (prevents e.g., 2024-02-30 from passing)
     return (
         date.getFullYear() === year &&
         date.getMonth() === month - 1 &&
@@ -25,6 +36,15 @@ export const isValidDate = (value: string): boolean => {
     );
 };
 
+/**
+ * Validates an array of periods for correctness:
+ * - Checks if dates are in valid format (YYYY-MM-DD)
+ * - Checks if start is before end
+ * - Checks if periods do not overlap
+ *
+ * @param periods - Array of Period objects to validate
+ * @returns {ValidationResult} Object indicating if the data is valid, and error info if not
+ */
 export const validatePeriods = (periods: Period[]): ValidationResult => {
     const result: ValidationResult = {
         isValid: true,
@@ -34,6 +54,7 @@ export const validatePeriods = (periods: Period[]): ValidationResult => {
     for (let i = 0; i < periods.length; i++) {
         const { start, end } = periods[i];
 
+        // Check start date validity
         if (start && !isValidDate(start)) {
             console.warn("Błędna data początkowa:", start);
             return {
@@ -44,6 +65,7 @@ export const validatePeriods = (periods: Period[]): ValidationResult => {
             };
         }
 
+        // Check end date validity
         if (end && !isValidDate(end)) {
             console.warn("Błędna data końcowa:", end);
             return {
@@ -54,11 +76,13 @@ export const validatePeriods = (periods: Period[]): ValidationResult => {
             };
         }
 
+        // Skip if one of the dates is missing
         if (!start || !end) continue;
 
         const startDate = new Date(start);
         const endDate = new Date(end);
 
+        // Ensure start < end
         if (startDate >= endDate) {
             return {
                 isValid: false,
@@ -68,6 +92,7 @@ export const validatePeriods = (periods: Period[]): ValidationResult => {
             };
         }
 
+        // Check for overlaps with previously entered periods
         for (let j = 0; j < i; j++) {
             if (!periods[j].start || !periods[j].end) continue;
 
@@ -76,7 +101,9 @@ export const validatePeriods = (periods: Period[]): ValidationResult => {
             const jStart = new Date(periods[j].start);
             const jEnd = new Date(periods[j].end);
 
-            if (iStart <= jEnd && iEnd >= jStart) {
+            const overlap = iStart <= jEnd && iEnd >= jStart;
+
+            if (overlap) {
                 return {
                     isValid: false,
                     errorMessage: `Błąd: Okresy nie mogą się nakładać (Rok ${i + 1} i Rok ${j + 1})`,

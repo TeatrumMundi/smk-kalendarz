@@ -1,16 +1,6 @@
-﻿import { parseDateString } from "./dateHelpers";
-import { isPolishHoliday } from "./polishHolidays";
-
-export type DateInput = string | Date;
-
-/**
- * Parses either a string or a Date input into a valid Date object.
- */
-const normalizeDate = (input: DateInput): Date => {
-    if (input instanceof Date) return input;
-    return parseDateString(input);
-};
-
+﻿import { isPolishHoliday } from "./polishHolidays";
+import {DateInput} from "@/types/Period";
+import {getNormalizedDateRange} from "@/utils/helpers/getNormalizedDateRange";
 /**
  * Calculates the number of working days (Mon-Fri, excluding holidays),
  * optionally filtered by a custom period condition.
@@ -22,14 +12,13 @@ export const getWorkingDaysInRange = (
     end: DateInput,
     isDateInBasePeriod?: (date: Date) => boolean
 ): number => {
-    const startDate = normalizeDate(start);
-    const endDate = normalizeDate(end);
-
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    const range = getNormalizedDateRange(start, end);
+    if (!range) {
         console.warn("Invalid date input:", { start, end });
         return 0;
     }
 
+    const [startDate, endDate] = range;
     let workingDays = 0;
     const current = new Date(startDate);
 

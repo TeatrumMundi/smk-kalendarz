@@ -31,7 +31,7 @@ export const generateCalendarData = (validPeriods: Period[]) => {
         return { months: [], hasData: false };
     }
 
-    // Rest of the code remains the same
+    // The Rest of the code remains the same
     const minYear = minDate.getFullYear();
     const minMonth = minDate.getMonth();
     const maxYear = maxDate.getFullYear();

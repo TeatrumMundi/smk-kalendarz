@@ -35,8 +35,8 @@ describe("getWorkingDaysInRange", () => {
         expect(getWorkingDaysInRange("not-a-date", "2024-01-07")).toBe(0);
     });
 
-    it("returns 0 when start is after end", () => {
-        expect(getWorkingDaysInRange("10.01.2024", "05.01.2024")).toBe(0);
+    it("returns proper value when reverse dates", () => {
+        expect(getWorkingDaysInRange("10.01.2024", "05.01.2024")).toBe(4);
     });
 
     it("accepts DD/MM/YYYY format", () => {

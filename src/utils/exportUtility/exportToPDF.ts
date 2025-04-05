@@ -123,7 +123,7 @@ export const exportToPDF = async (personalInfo: PersonalInfo) => {
 
             const section = calendarSections[i];
 
-            // Create temporary container with white background
+            // Create a temporary container with a white background
             const tempDiv = document.createElement('div');
             tempDiv.style.position = 'absolute';
             tempDiv.style.left = '-9999px';
@@ -149,7 +149,7 @@ export const exportToPDF = async (personalInfo: PersonalInfo) => {
                     const elements = clonedDoc.querySelectorAll('*');
                     elements.forEach(el => {
                         if (el instanceof HTMLElement) {
-                            // Force override any inline styles with oklch
+                            // Force to override any inline styles with oklch
                             const style = el.getAttribute('style');
                             if (style && style.includes('oklch')) {
                                 el.setAttribute('style', style.replace(/oklch\([^)]+\)/g, '#333333'));
@@ -159,7 +159,7 @@ export const exportToPDF = async (personalInfo: PersonalInfo) => {
                 }
             });
 
-            // Clean up temp element
+            // Clean up a temp element
             document.body.removeChild(tempDiv);
 
             // Add new page if not first page

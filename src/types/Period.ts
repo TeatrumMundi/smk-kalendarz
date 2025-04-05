@@ -21,3 +21,5 @@ export interface GroupedRangeResult {
     coloredRangeDays: number;
     basicPeriodDays: number;
 }
+
+export type DateInput = string | Date;
