@@ -1,30 +1,36 @@
-﻿interface ErrorPopupProps {
+﻿"use client";
+
+import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { AlertCircle } from "lucide-react";
+
+interface ErrorPopupProps {
     message: string;
     show: boolean;
+    onClose?: () => void; // opcjonalne wywołanie zamknięcia
 }
 
-export default function ErrorPopup({ message, show }: ErrorPopupProps) {
-    if (!show) return null;
+export default function ErrorPopup({ message, show, onClose }: ErrorPopupProps) {
+    useEffect(() => {
+        if (!show || !onClose) return;
+        const timeout = setTimeout(onClose, 5000);
+        return () => clearTimeout(timeout);
+    }, [show, onClose]);
 
     return (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-50 border-l-4 border-red-500 text-red-900 p-4 rounded-lg shadow-xl z-50 animate-fade-in">
-            <div className="flex items-center">
-                <svg
-                    className="w-6 h-6 mr-3 text-red-500 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
+        <AnimatePresence>
+            {show && (
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className="fixed top-15 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-4 rounded-sm shadow-sm border border-red-400 flex items-center gap-3"
                 >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    ></path>
-                </svg>
-                <span className="font-medium text-sm">{message}</span>
-            </div>
-        </div>
+                    <AlertCircle className="w-5 h-5 text-white" />
+                    <span className="text-sm font-medium">{message}</span>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 }

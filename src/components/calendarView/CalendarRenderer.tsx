@@ -5,10 +5,20 @@ import { PeriodStats } from "@/components/calendarView";
 import { ColoredRange, Period } from "@/types/Period";
 import MonthView from "@/components/calendarView/MonthView";
 import { LegendSelector } from "@/components/calendarView/LegendSelector";
+import {NameInputModal} from "@/components/calendarView/NameInputModal";
+
 
 export interface PersonalInfo {
     firstName: string;
     lastName: string;
+}
+
+interface LabelModalData {
+    start: Date;
+    end: Date;
+    type: string;
+    color: string;
+    onConfirm: (label?: string) => void;
 }
 
 interface CalendarRendererProps {
@@ -26,6 +36,8 @@ interface CalendarRendererProps {
     setDisplayPeriods: React.Dispatch<React.SetStateAction<Period[]>>;
     setColoredRanges: React.Dispatch<React.SetStateAction<ColoredRange[]>>;
     setPersonalInfo: React.Dispatch<React.SetStateAction<PersonalInfo>>;
+    modalData: LabelModalData | null;
+    setModalData: (value: LabelModalData | null) => void;
 }
 
 export interface CalendarDay {
@@ -53,7 +65,9 @@ export default function CalendarRenderer({
                                              setPeriods,
                                              setDisplayPeriods,
                                              setColoredRanges,
-                                             setPersonalInfo
+                                             setPersonalInfo,
+                                             modalData,
+                                             setModalData,
                                          }: CalendarRendererProps) {
     return (
         <div id="calendar-container" className="mt-6">
@@ -109,6 +123,19 @@ export default function CalendarRenderer({
                     </div>
                 );
             })}
+
+            {modalData && (
+                <NameInputModal
+                    isOpen={true}
+                    start={modalData.start}
+                    end={modalData.end}
+                    onClose={() => setModalData(null)}
+                    onSubmit={(label) => {
+                        modalData.onConfirm(label);
+                        setModalData(null);
+                    }}
+                />
+            )}
         </div>
     );
 }

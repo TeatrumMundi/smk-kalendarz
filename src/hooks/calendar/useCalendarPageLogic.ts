@@ -1,4 +1,4 @@
-﻿import { useMemo } from "react";
+﻿import {useMemo, useState} from "react";
 import { handleDayClick as handleDayClickUtil } from "@/utils/calendar/handleDayClick";
 import { generateCalendarData } from "@/utils/calendar/generateCalendarData";
 import { legendItems } from "@/config/legendConfig";
@@ -78,6 +78,14 @@ export function useCalendarPageLogic() {
         return compareDate >= startDate && compareDate <= endDate;
     };
 
+    const [modalData, setModalData] = useState<{
+        start: Date;
+        end: Date;
+        type: string;
+        color: string;
+        onConfirm: (label?: string) => void;
+    } | null>(null);
+
     /**
      * Handles logic triggered when a user clicks on a calendar day.
      * Responsible for toggling colored ranges based on the selected legend type.
@@ -92,7 +100,8 @@ export function useCalendarPageLogic() {
             coloredState.setRangeSelection,
             legendItems,
             isDateInBasePeriod,
-            periodIndex
+            periodIndex,
+            setModalData
         );
 
         if (newSelectedType !== null) {
@@ -158,5 +167,7 @@ export function useCalendarPageLogic() {
         handlePeriodDelete,
         handleDayClick,
         isDateInBasePeriod,
+        modalData,
+        setModalData,
     };
 }

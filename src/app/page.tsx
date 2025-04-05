@@ -29,6 +29,8 @@ export default function Home() {
     setPersonalInfo,
     showPopup,
     validationResult,
+      modalData,
+      setModalData
   } = useCalendarPageLogic();
 
   return (
@@ -67,6 +69,8 @@ export default function Home() {
                 setDisplayPeriods={setDisplayPeriods}
                 setColoredRanges={setColoredRanges}
                 setPersonalInfo={setPersonalInfo}
+                modalData={modalData}
+                setModalData={setModalData}
             />
         ) : (
             <div className="mt-6 text-gray-400">
