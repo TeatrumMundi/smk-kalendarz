@@ -48,15 +48,36 @@ const DayCell: React.FC<DayCellProps> = ({
             ? "text-red-400/30"
             : !isInBasePeriod
                 ? "text-gray-700"
-                : "text-gray-200"
+                : coloredRange
+                    ? "text-white font-semibold drop-shadow"
+                    : "text-gray-200"
     );
+
+    let rangeIndex: number | null = null;
+
+    if (date && coloredRange) {
+        const separator = coloredRange.start.includes('/') ? '/' : '.';
+        const [dayStart, monthStart, yearStart] = coloredRange.start.split(separator).map(Number);
+        const rangeStart = new Date(yearStart, monthStart - 1, dayStart);
+
+        const diffInMs = date.getTime() - rangeStart.getTime();
+        const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+        rangeIndex = diffInDays >= 0 ? diffInDays + 1 : null;
+    }
 
     return (
         <div
             className={classes}
             onClick={() => (isClickable && date ? onClick(date) : null)}
         >
-            {day && <div className={textClass}>{day}</div>}
+            {day && (
+                <div className="flex flex-col items-center leading-tight">
+                    <span className={textClass}>{day}</span>
+                    {rangeIndex && (
+                        <span className="text-[10px] text-white/80 leading-none">#{rangeIndex}</span>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
