@@ -1,6 +1,7 @@
 ﻿import React from "react";
 import { ColoredRange } from "@/types/Period";
 import clsx from "clsx";
+import {calculateRangeIndex} from "@/utils/helpers/calendarLogic";
 
 interface DayCellProps {
     day: number | null;
@@ -53,26 +54,9 @@ const DayCell: React.FC<DayCellProps> = ({
                     : "text-gray-200"
     );
 
-    let rangeIndex: number | null = null;
-
-    if (date && coloredRange) {
-        const separator = coloredRange.start.includes('/') ? '/' : '.';
-        const [dayStart, monthStart, yearStart] = coloredRange.start.split(separator).map(Number);
-        const rangeStart = new Date(yearStart, monthStart - 1, dayStart);
-
-        if (date >= rangeStart) {
-            let count = 0;
-            const current = new Date(rangeStart);
-            while (current <= date) {
-                const dayOfWeek = current.getDay();
-                if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-                    count++;
-                }
-                current.setDate(current.getDate() + 1);
-            }
-            rangeIndex = count;
-        }
-    }
+    const rangeIndex = (date && coloredRange)
+        ? calculateRangeIndex(date, coloredRange.start)
+        : null;
 
     return (
         <div

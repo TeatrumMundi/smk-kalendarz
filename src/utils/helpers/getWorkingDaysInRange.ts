@@ -1,44 +1,50 @@
-﻿import { isPolishHoliday } from './polishHolidays';
+﻿import { parseDateString } from "./dateHelpers";
+import { isPolishHoliday } from "./polishHolidays";
 
-export const getWorkingDaysInRange = (start: string, end: string): number => {
-    console.log('Input dates:', start, end);
+export type DateInput = string | Date;
 
-    // Convert DD/MM/YYYY to YYYY-MM-DD
-    const convertDateFormat = (dateStr: string) => {
-        const [day, month, year] = dateStr.split(/[\/.]/);
-        return `${year}-${month}-${day}`;
-    };
+/**
+ * Parses either a string or a Date input into a valid Date object.
+ */
+const normalizeDate = (input: DateInput): Date => {
+    if (input instanceof Date) return input;
+    return parseDateString(input);
+};
 
-    try {
-        const startDate = new Date(convertDateFormat(start));
-        const endDate = new Date(convertDateFormat(end));
+/**
+ * Calculates the number of working days (Mon-Fri, excluding holidays),
+ * optionally filtered by a custom period condition.
+ *
+ * Accepts either string (various formats) or Date objects.
+ */
+export const getWorkingDaysInRange = (
+    start: DateInput,
+    end: DateInput,
+    isDateInBasePeriod?: (date: Date) => boolean
+): number => {
+    const startDate = normalizeDate(start);
+    const endDate = normalizeDate(end);
 
-        console.log('Converted dates:', startDate, endDate);
-
-        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-            console.log('Invalid date conversion');
-            return 0;
-        }
-
-        let workingDays = 0;
-        const currentDate = new Date(startDate);
-
-        while (currentDate <= endDate) {
-            const dayOfWeek = currentDate.getDay();
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-            const isHoliday = isPolishHoliday(currentDate);
-
-            if (!isWeekend && !isHoliday) {
-                workingDays++;
-            }
-
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-
-        console.log('Calculated working days:', workingDays);
-        return workingDays;
-    } catch (err) {
-        console.error('Date calculation error:', err);
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+        console.warn("Invalid date input:", { start, end });
         return 0;
     }
+
+    let workingDays = 0;
+    const current = new Date(startDate);
+
+    while (current <= endDate) {
+        const dayOfWeek = current.getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        const isHoliday = isPolishHoliday(current);
+        const isBase = isDateInBasePeriod ? isDateInBasePeriod(current) : true;
+
+        if (!isWeekend && !isHoliday && isBase) {
+            workingDays++;
+        }
+
+        current.setDate(current.getDate() + 1);
+    }
+
+    return workingDays;
 };

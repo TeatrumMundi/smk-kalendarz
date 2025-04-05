@@ -2,6 +2,7 @@
 import { getWorkingDaysInRange } from '@/utils/helpers/getWorkingDaysInRange';
 import { CopyStatsButton } from "@/components/buttons/CopyStatsButton";
 import { ChevronsRight } from "lucide-react";
+import {formatStatsForClipboard, groupAndSummarizeRanges} from "@/utils/helpers/calendarLogic";
 
 interface ColoredRange {
     start: string;
@@ -31,52 +32,12 @@ export const PeriodStats = ({
         console.log("Aktualne coloredRanges:", coloredRanges);
     }, [coloredRanges]);
 
-    const periodStart = periods[parseInt(periodIndex)].start;
-    const periodEnd = periods[parseInt(periodIndex)].end;
+    const period = periods[parseInt(periodIndex)];
+    const { grouped, totalWorkingDays, coloredRangeDays, basicPeriodDays } =
+        groupAndSummarizeRanges(coloredRanges, period.start, period.end);
 
-    const periodStartDate = new Date(periodStart);
-    const periodEndDate = new Date(periodEnd);
-
-    const filteredRanges = coloredRanges.filter(range => {
-        const separator = range.start.includes('/') ? '/' : '.';
-        const [dayStart, monthStart, yearStart] = range.start.split(separator).map(Number);
-        const rangeStartDate = new Date(yearStart, monthStart - 1, dayStart);
-
-        const [dayEnd, monthEnd, yearEnd] = range.end.split(separator).map(Number);
-        const rangeEndDate = new Date(yearEnd, monthEnd - 1, dayEnd);
-
-        return (rangeStartDate <= periodEndDate && rangeEndDate >= periodStartDate);
-    });
-
-    const groupedRanges = filteredRanges.reduce((acc, range) => {
-        const key = range.type;
-        if (!acc[key]) {
-            acc[key] = [];
-        }
-        acc[key].push(range);
-        return acc;
-    }, {} as Record<string, ColoredRange[]>);
-
-    const totalWorkingDays = getWorkingDaysInRange(periodStart, periodEnd);
-    const coloredRangeDays = filteredRanges.reduce((sum, range) => {
-        const rangeDays = getWorkingDaysInRange(range.start, range.end);
-        return sum + rangeDays;
-    }, 0);
-
-    const basicPeriodDays = totalWorkingDays - coloredRangeDays;
-
-    const formatStatsForClipboard = (grouped: Record<string, ColoredRange[]>) => {
-        const basicLine = `Okres podstawowy ilość dni: ${totalWorkingDays} - ${coloredRangeDays} = ${basicPeriodDays}`;
-        const lines = Object.entries(grouped).flatMap(([type, ranges]) =>
-            ranges.map(range => {
-                const label = range.label ? ` (${range.label})` : '';
-                const dateRange = range.start === range.end ? range.start : `${range.start}-${range.end}`;
-                const days = getWorkingDaysInRange(range.start, range.end);
-                return `${type}${label}: ${dateRange} - ${days} dni roboczych`;
-            })
-        );
-        return [basicLine, ...lines].join('\n');
-    };
+    console.log("grouped", grouped);
+    console.log("coloredRanges", coloredRanges);
 
     const handleLegendClick = (type: string) => {
         if (selectedType === type) {
@@ -98,11 +59,13 @@ export const PeriodStats = ({
                         <span className="text-green-400"> {basicPeriodDays}</span>
                     </span>
                 </h4>
-                <CopyStatsButton getStatsTextAction={() => formatStatsForClipboard(groupedRanges)} />
+                <CopyStatsButton
+                    getStatsTextAction={() => formatStatsForClipboard(grouped, totalWorkingDays, coloredRangeDays)}
+                />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                {Object.entries(groupedRanges).map(([type, ranges]) => {
+                {Object.entries(grouped).map(([type, ranges]) => {
                     const isSelected = selectedType === type;
                     const typeWorkingDays = ranges.reduce((sum, range) =>
                         sum + getWorkingDaysInRange(range.start, range.end), 0

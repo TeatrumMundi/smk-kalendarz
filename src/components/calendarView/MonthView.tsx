@@ -3,7 +3,8 @@ import { CalendarMonth } from "./CalendarRenderer";
 import { isPolishHoliday } from "@/utils/helpers/polishHolidays";
 import { ColoredRange } from "@/types/Period";
 import DayCell from "@/components/calendarView/DayCell";
-import {calculateWorkingDaysInRange} from "@/utils/helpers/calculateWorkingDaysInRange";
+import { parseDateString, isSameDate } from "@/utils/helpers/dateHelpers";
+import {getWorkingDaysInRange} from "@/utils/helpers/getWorkingDaysInRange";
 
 interface MonthViewProps {
     month: CalendarMonth;
@@ -14,16 +15,6 @@ interface MonthViewProps {
     handleDayClick: (date: Date, periodIndex: string) => void;
     rangeSelection: { start: Date | null };
 }
-
-const parseDateString = (str: string): Date => {
-    const [d, m, y] = str.split(/[./]/).map(Number);
-    return new Date(y, m - 1, d);
-};
-
-const isSameDate = (a: Date, b: Date) =>
-    a.getDate() === b.getDate() &&
-    a.getMonth() === b.getMonth() &&
-    a.getFullYear() === b.getFullYear();
 
 const MonthView: React.FC<MonthViewProps> = ({
                                                  month,
@@ -39,7 +30,7 @@ const MonthView: React.FC<MonthViewProps> = ({
         "lipiec", "sierpień", "wrzesień", "październik", "listopad", "grudzień"
     ].indexOf(month.name.toLowerCase());
 
-    const workingDaysInMonth = calculateWorkingDaysInRange(
+    const workingDaysInMonth = getWorkingDaysInRange(
         new Date(month.year, monthNumber, 1),
         new Date(month.year, monthNumber + 1, 0),
         (date) => isDateInBasePeriod(date, periodIndex)

@@ -1,5 +1,5 @@
 ﻿import React from "react";
-import { calculateDays } from "@/utils/helpers/calculateDays";
+import { getCalendarDaysInRange } from "@/utils/helpers/getCalendarDaysInRange";
 import { PDFButton, ExcelButton, ResetButton } from "@/components/buttons";
 import { PeriodStats } from "@/components/calendarView";
 import { ColoredRange, Period } from "@/types/Period";
@@ -65,7 +65,7 @@ export default function CalendarRenderer({
                             Rok {parseInt(periodIndex) + 1}
                             {period.start && period.end && (
                                 <span className="ml-2 text-gray-400">
-                  Ilość dni: {calculateDays(period.start, period.end)}
+                  Ilość dni: {getCalendarDaysInRange(period.start, period.end)}
                 </span>
                             )}
                         </h2>

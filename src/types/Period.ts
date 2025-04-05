@@ -14,3 +14,10 @@ export type PersonalInfo = {
     firstName: string;
     lastName: string;
 };
+
+export interface GroupedRangeResult {
+    grouped: Record<string, ColoredRange[]>;
+    totalWorkingDays: number;
+    coloredRangeDays: number;
+    basicPeriodDays: number;
+}

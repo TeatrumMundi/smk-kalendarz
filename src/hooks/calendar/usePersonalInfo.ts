@@ -8,7 +8,10 @@ export const usePersonalInfo = () => {
     const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(() => {
         if (typeof window !== "undefined") {
             const saved = localStorage.getItem("personalInfo");
-            return saved ? JSON.parse(saved) : { firstName: "", lastName: "" };
+            try {
+                const parsed = saved ? JSON.parse(saved) : null;
+                if (parsed?.firstName && parsed?.lastName) return parsed;
+            } catch {}
         }
         return { firstName: "", lastName: "" };
     });
