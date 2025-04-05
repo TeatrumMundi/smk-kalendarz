@@ -129,8 +129,8 @@ export default function CalendarRenderer({
                     isOpen={true}
                     start={modalData.start}
                     end={modalData.end}
-                    onClose={() => setModalData(null)}
-                    onSubmit={(label) => {
+                    onCloseAction={() => setModalData(null)}
+                    onSubmitAction={(label : string) => {
                         modalData.onConfirm(label);
                         setModalData(null);
                     }}

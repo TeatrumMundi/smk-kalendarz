@@ -28,11 +28,12 @@ interface ModalDataSetter {
 
 /**
  * Handles the logic for when a user clicks on a calendar day.
+ *
  * Depending on the current state, it either:
  * - starts a new range selection
- * - finalizes the range selection and adds a new colored range
+ * - finalizes the range selection and adds one or multiple colored ranges
  * - removes an existing range if clicked on one
- * - optionally prompt for a label if the type requires it (e.g. "Staże")
+ * - optionally prompts for a label if the type requires it (e.g. "Staże")
  *
  * @param date - The clicked calendar date
  * @param coloredRanges - List of existing colored ranges
@@ -100,30 +101,73 @@ export const handleDayClick = (
     const selectedLegendColor = legendItems.find(item => item.label === selectedLegendType)?.color || "";
     const shouldAskForLabel = selectedLegendType === "Staże" || selectedLegendType === "Kursy";
 
-    // Handler when modal is confirmed
+    /**
+     * Splits the selected date range into segments that do not overlap existing ranges
+     * and adds each segment as a new ColoredRange.
+     */
     const onConfirm = (label?: string) => {
-        const newRange: ColoredRange = {
-            start: formatDate(finalStart),
-            end: formatDate(finalEnd),
-            type: selectedLegendType,
-            color: selectedLegendColor,
-            ...(label ? { label } : {})
-        };
-        setColoredRanges([...coloredRanges, newRange]);
+        const newRanges: ColoredRange[] = [];
+        const current = new Date(finalStart);
+        let segmentStart: Date | null = null;
+
+        while (current <= finalEnd) {
+            const dateCopy = new Date(current);
+            const isOverlapping = coloredRanges.some(range => isDateInRange(dateCopy, range));
+
+            if (!isOverlapping) {
+                if (!segmentStart) segmentStart = new Date(dateCopy);
+            } else if (segmentStart) {
+                const segmentEnd = new Date(dateCopy);
+                segmentEnd.setDate(segmentEnd.getDate() - 1);
+
+                newRanges.push({
+                    start: formatDate(segmentStart),
+                    end: formatDate(segmentEnd),
+                    type: selectedLegendType,
+                    color: selectedLegendColor,
+                    ...(label ? { label } : {})
+                });
+
+                segmentStart = null;
+            }
+
+            current.setDate(current.getDate() + 1);
+        }
+
+        // Close any remaining open range
+        if (segmentStart) {
+            newRanges.push({
+                start: formatDate(segmentStart),
+                end: formatDate(finalEnd),
+                type: selectedLegendType,
+                color: selectedLegendColor,
+                ...(label ? { label } : {})
+            });
+        }
+
+        if (newRanges.length > 0) {
+            setColoredRanges(prev => [...prev, ...newRanges]);
+        }
+
         setRangeSelection({ start: null, end: null });
     };
 
-    // Always reset range selection before showing modal or confirming
-    setRangeSelection({ start: null, end: null });
-
+    // Modal with label if needed
     if (shouldAskForLabel) {
         setModalData({
             start: finalStart,
             end: finalEnd,
             type: selectedLegendType,
             color: selectedLegendColor,
-            onConfirm,
-            onCancel: () => setRangeSelection({ start: null, end: null })
+            onConfirm: (label) => {
+                onConfirm(label);
+                setRangeSelection({ start: null, end: null });
+                setModalData(null);
+            },
+            onCancel: () => {
+                setRangeSelection({ start: null, end: null });
+                setModalData(null);
+            }
         });
         return null;
     }
