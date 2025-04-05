@@ -91,12 +91,12 @@ export const PeriodStats = ({
             <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                 <h4 className="text-xl font-bold text-white">Statystyki okresów</h4>
                 <h4 className="text-xl font-bold text-white">
-        <span className="text-lg font-semibold text-white ">
-          Okres podstawowy:&nbsp;
-            <span className="text-blue-400">{totalWorkingDays}</span> -
-          <span className="text-red-400"> {coloredRangeDays}</span> =
-          <span className="text-green-400"> {basicPeriodDays}</span>
-        </span>
+                    <span className="text-lg font-semibold text-white ">
+                        Okres podstawowy:&nbsp;
+                        <span className="text-blue-400">{totalWorkingDays}</span> -
+                        <span className="text-red-400"> {coloredRangeDays}</span> =
+                        <span className="text-green-400"> {basicPeriodDays}</span>
+                    </span>
                 </h4>
                 <CopyStatsButton getStatsTextAction={() => formatStatsForClipboard(groupedRanges)} />
             </div>
@@ -104,6 +104,9 @@ export const PeriodStats = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {Object.entries(groupedRanges).map(([type, ranges]) => {
                     const isSelected = selectedType === type;
+                    const typeWorkingDays = ranges.reduce((sum, range) =>
+                        sum + getWorkingDaysInRange(range.start, range.end), 0
+                    );
 
                     return (
                         <div
@@ -114,8 +117,8 @@ export const PeriodStats = ({
                             <div className="flex items-start space-x-3">
                                 <div className={`w-4 h-4 mt-1 ${ranges[0].color} rounded-xs shadow-sm`}></div>
                                 <div className="text-white font-medium text-left">
-                                    {type}:
-                                    <ul className="ml-2 mt-1 text-sm text-gray-300 list-none text-left space-y-0.5">
+                                    {type} ( <span className="text-red-400 font-bold">{typeWorkingDays}</span> dni roboczych ):
+                                    <ul className="ml-2 mt-1 text-sm text-gray-300 list-none pl-1 text-left space-y-0.5">
                                         {ranges.map((range, i) => {
                                             const rangeText = range.start === range.end
                                                 ? range.start
