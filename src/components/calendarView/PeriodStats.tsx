@@ -111,7 +111,7 @@ export const PeriodStats = ({
                     return (
                         <div
                             key={type}
-                            className={`p-2 rounded-xs cursor-pointer transition-colors duration-200 ${isSelected ? 'bg-indigo-600' : 'hover:bg-indigo-600/70'}`}
+                            className={`p-2 rounded-xs cursor-pointer transition-colors duration-200 border border-blue-900 ${isSelected ? 'bg-indigo-600' : 'hover:bg-indigo-600/70'}`}
                             onClick={() => handleLegendClick(type)}
                         >
                             <div className="flex items-start space-x-3">
