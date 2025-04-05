@@ -18,7 +18,7 @@ interface CalendarRendererProps {
     setSelectedLegendType: React.Dispatch<React.SetStateAction<string | null>>;
     isDateInColoredRange: (date: Date, month: number, year: number) => ColoredRange | null;
     isDateInBasePeriod: (date: Date, periodIndex: string) => boolean;
-    handleDayClick: (date: Date) => void;
+    handleDayClick: (date: Date, periodIndex: string) => void;
     rangeSelection: { start: Date | null };
     coloredRanges: ColoredRange[];
     personalInfo: PersonalInfo;
@@ -84,7 +84,7 @@ export default function CalendarRenderer({
                                     selectedLegendType={selectedLegendType}
                                     isDateInColoredRange={isDateInColoredRange}
                                     isDateInBasePeriod={isDateInBasePeriod}
-                                    handleDayClick={handleDayClick}
+                                    handleDayClick={(date) => handleDayClick(date, periodIndex)}
                                     rangeSelection={rangeSelection}
                                 />
                             ))}

@@ -68,7 +68,7 @@ export default function Home() {
     return compareDate >= startDate && compareDate <= endDate;
   };
 
-  const handleDayClick = (date: Date) => {
+  const handleDayClick = (date: Date, periodIndex: string) => {
     const newSelectedType = handleDayClickUtil(
         date,
         coloredRanges,
@@ -76,7 +76,9 @@ export default function Home() {
         selectedLegendType,
         rangeSelection,
         setRangeSelection,
-        legendItems
+        legendItems,
+        isDateInBasePeriod,
+        periodIndex
     );
     if (newSelectedType !== null) {
       setSelectedLegendType(newSelectedType);

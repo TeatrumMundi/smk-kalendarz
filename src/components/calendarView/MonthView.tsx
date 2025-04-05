@@ -11,7 +11,7 @@ interface MonthViewProps {
     selectedLegendType: string | null;
     isDateInColoredRange: (date: Date, month: number, year: number) => ColoredRange | null;
     isDateInBasePeriod: (date: Date, periodIndex: string) => boolean;
-    handleDayClick: (date: Date) => void;
+    handleDayClick: (date: Date, periodIndex: string) => void;
     rangeSelection: { start: Date | null };
 }
 
@@ -89,7 +89,7 @@ const MonthView: React.FC<MonthViewProps> = ({
                             coloredRange={coloredRange}
                             isSelected={!!isSelected}
                             selectedLegendType={selectedLegendType}
-                            onClick={handleDayClick}
+                            onClick={() => currentDate && handleDayClick(currentDate, periodIndex)}
                             rangeStart={!!rangeStart}
                             rangeEnd={!!rangeEnd}
                         />

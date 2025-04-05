@@ -48,7 +48,7 @@ const PeriodRow: FC<PeriodRowProps> = ({ start, end, onChange, onDelete, isDelet
     }, [start]);
 
     return (
-        <div className="flex items-center space-x-1 p-2 rounded-xs bg-gray-700/50 hover:bg-gray-600 transition-all">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:space-x-1 p-2 rounded-xs bg-gray-700/50 hover:bg-gray-600 transition-all">
             <input
                 type="text"
                 placeholder="DD/MM/YYYY"
@@ -103,7 +103,7 @@ const PeriodInput: FC<PeriodInputProps> = ({
                                                addNewPeriod,
                                            }) => {
     return (
-        <div className="flex flex-wrap items-center gap-4 p-4 w-full bg-gray-800 rounded-lg shadow-md">
+        <div className="flex flex-wrap items-center gap-2 p-4 w-full">
             <div className="flex flex-row flex-wrap items-center gap-4">
                 {/* Render a row for each period */}
                 {periods.map((_period, index) => (

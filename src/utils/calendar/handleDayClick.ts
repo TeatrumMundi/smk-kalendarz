@@ -15,7 +15,9 @@ export const handleDayClick = (
     selectedLegendType: string | null,
     rangeSelection: RangeSelection,
     setRangeSelection: React.Dispatch<React.SetStateAction<RangeSelection>>,
-    legendItems: Array<{ color: string; label: string }>
+    legendItems: Array<{ color: string; label: string }>,
+    isDateInBasePeriod: (date: Date, periodIndex: string) => boolean,
+    periodIndex: string
 ): string | null => {
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     const isHoliday = isPolishHoliday(date);
@@ -39,6 +41,16 @@ export const handleDayClick = (
         const start = rangeSelection.start;
         const end = date;
         const [finalStart, finalEnd] = start <= end ? [start, end] : [end, start];
+
+        // ✅ Check if start and end are in the same base period
+        const isStartInBase = isDateInBasePeriod(finalStart, periodIndex);
+        const isEndInBase = isDateInBasePeriod(finalEnd, periodIndex);
+        if (isStartInBase !== isEndInBase) {
+            alert("Nie można zaznaczyć zakresu, który przekracza granicę okresów podstawowych.");
+            setRangeSelection({ start: null, end: null });
+            return null;
+        }
+
         const formatDate = (d: Date) => d.toLocaleDateString('pl', { day: '2-digit', month: '2-digit', year: 'numeric' });
         const selectedLegendColor = legendItems.find(item => item.label === selectedLegendType)?.color || '';
 
@@ -65,9 +77,10 @@ export const handleDayClick = (
         while (currentDate <= finalEnd) {
             const currentDay = new Date(currentDate);
             const isInExistingRange = overlappingRanges.some(range => isDateInRange(currentDay, range));
+            const isWeekendOrHoliday = currentDay.getDay() === 0 || currentDay.getDay() === 6 || isPolishHoliday(currentDay);
 
             if (!isInExistingRange) {
-                if (segmentStart === null) {
+                if (segmentStart === null && !isWeekendOrHoliday) {
                     segmentStart = new Date(currentDay);
                 }
             } else {
