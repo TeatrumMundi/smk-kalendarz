@@ -141,54 +141,54 @@ export const exportToExcel = async (
     personalInfo: { firstName: string, lastName: string }
 ): Promise<void> => {
     try {
-        // Create loading overlay
-        const loading = createLoadingOverlay({
-            message: 'Generowanie Excel...'
-        });
+        const loading = createLoadingOverlay({ message: 'Generowanie Excel...' });
         loading.updateProgress(10);
 
-        // Calculate working days
-        const totalWorkingDays = calculateTotalWorkingDays(periods);
-        loading.updateProgress(30);
-
-        // Group colored ranges and calculate days
-        const { workingDaysByType } = calculateWorkingDaysByType(coloredRanges);
-        loading.updateProgress(50);
-
-        // Create workbook and worksheet
         const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Suma');
 
-        // Apply styling and populate data
-        applyWorksheetStyling(worksheet, personalInfo);
-        populateWorksheetData(worksheet, totalWorkingDays, workingDaysByType);
-        loading.updateProgress(70);
+        periods.forEach((period, index) => {
+            const periodStart = new Date(formatDateIfNeeded(period.start));
+            const periodEnd = new Date(formatDateIfNeeded(period.end));
 
-        // Generate filename
+            const filteredRanges = coloredRanges.filter(range => {
+                const [d1, m1, y1] = range.start.split(/[./]/).map(Number);
+                const [d2, m2, y2] = range.end.split(/[./]/).map(Number);
+                const rangeStart = new Date(y1, m1 - 1, d1);
+                const rangeEnd = new Date(y2, m2 - 1, d2);
+                return rangeEnd >= periodStart && rangeStart <= periodEnd;
+            });
+
+            const totalWorkingDays = calculateWorkingDays(period.start, period.end);
+            const { workingDaysByType } = calculateWorkingDaysByType(filteredRanges);
+
+            const worksheet = workbook.addWorksheet(`Rok ${index + 1}`);
+            applyWorksheetStyling(worksheet, personalInfo);
+            populateWorksheetData(worksheet, totalWorkingDays, workingDaysByType);
+        });
+
+        // Ogólne podsumowanie w zakładce „Suma”
+        const allWorkingDays = calculateTotalWorkingDays(periods);
+        const { workingDaysByType: allTypes } = calculateWorkingDaysByType(coloredRanges);
+        const summarySheet = workbook.addWorksheet("Suma");
+        applyWorksheetStyling(summarySheet, personalInfo);
+        populateWorksheetData(summarySheet, allWorkingDays, allTypes);
+
+        loading.updateProgress(90);
+
         const fileName = generateFileName(personalInfo);
-        loading.updateProgress(80);
-
-        // Write to buffer and save
         const buffer = await workbook.xlsx.writeBuffer();
-        loading.updateProgress(95);
-
-        // Save file
         const blob = new Blob([buffer], {
             type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         });
+
         saveAs(blob, fileName);
-
-        // Clean up and finish
         loading.updateProgress(100);
-        setTimeout(() => {
-            loading.close();
-        }, 500);
+        setTimeout(() => loading.close(), 500);
 
-        console.log('Excel exported successfully');
-
+        console.log("Excel exported successfully");
     } catch (error) {
-        console.error('Failed to export to Excel:', error);
+        console.error("Failed to export to Excel:", error);
         removeExistingOverlays();
-        alert('Wystąpił błąd podczas eksportu do Excela.');
+        alert("Wystąpił błąd podczas eksportu do Excela.");
     }
 };

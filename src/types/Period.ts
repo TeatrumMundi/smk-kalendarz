@@ -9,3 +9,8 @@ export interface ColoredRange {
     color: string;
     label?: string;
 }
+
+export type PersonalInfo = {
+    firstName: string;
+    lastName: string;
+};

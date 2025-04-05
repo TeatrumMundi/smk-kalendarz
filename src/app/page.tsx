@@ -1,120 +1,47 @@
 ﻿"use client";
 
-import { useMemo } from "react";
-import { handleDayClick as handleDayClickUtil } from "@/utils/calendar/handleDayClick";
-import { generateCalendarData } from "@/utils/calendar/generateCalendarData";
-import { useColoredRanges } from "@/hooks/useColoredRanges";
-import { usePeriods } from "@/hooks/usePeriods";
-import { usePersonalInfo } from "@/hooks/usePersonalInfo";
 import { PersonalInfoForm, PeriodInput } from "@/components/calendarView";
-
-import {legendItems} from "@/config/legendConfig";
-import ErrorPopup from "@/components/errors/ErrorPopup";
 import CalendarRenderer from "@/components/calendarView/CalendarRenderer";
+import ErrorPopup from "@/components/errors/ErrorPopup";
+import {useCalendarPageLogic} from "@/hooks/calendar/useCalendarPageLogic";
+
 export default function Home() {
   const {
-    coloredRanges,
-    setColoredRanges,
+    personalInfo,
+    handlePersonalInfoChange,
+    periods,
+    displayPeriods,
+    handleDateChange,
+    handlePeriodDelete,
+    addNewPeriod,
+    memoizedCalendarData,
+    periodGroups,
     selectedLegendType,
     setSelectedLegendType,
-    rangeSelection,
-    setRangeSelection,
     isDateInColoredRange,
-  } = useColoredRanges();
-
-  const {
-    periods,
+    isDateInBasePeriod,
+    handleDayClick,
+    rangeSelection,
+    coloredRanges,
     setPeriods,
-    displayPeriods,
     setDisplayPeriods,
-    validationResult,
-    showPopup,
-    validPeriods,
-    addNewPeriod,
-    handleDeletePeriod,
-    handleDateChange,
-  } = usePeriods();
-
-  const {
-    personalInfo,
+    setColoredRanges,
     setPersonalInfo,
-    handlePersonalInfoChange,
-  } = usePersonalInfo();
-
-  const handlePeriodDelete = (index: number) => {
-    handleDeletePeriod(index, coloredRanges, setColoredRanges);
-  };
-
-  const parseDate = (dateString: string): Date | null => {
-    if (!dateString || dateString.trim() === "") return null;
-    if (dateString.includes("-")) {
-      const [year, month, day] = dateString.split("-").map(Number);
-      return new Date(year, month - 1, day);
-    } else if (dateString.includes("/") || dateString.includes(".")) {
-      const [day, month, year] = dateString.split(/[/.]/).map(Number);
-      return new Date(year, month - 1, day);
-    }
-    return null;
-  };
-
-  const isDateInBasePeriod = (date: Date, periodIndexStr: string): boolean => {
-    const periodIndex = parseInt(periodIndexStr);
-    if (periodIndex < 0 || periodIndex >= periods.length) return false;
-    const period = periods[periodIndex];
-    const startDate = parseDate(period.start);
-    const endDate = parseDate(period.end);
-    if (!startDate || !endDate) return false;
-    const compareDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    return compareDate >= startDate && compareDate <= endDate;
-  };
-
-  const handleDayClick = (date: Date, periodIndex: string) => {
-    const newSelectedType = handleDayClickUtil(
-        date,
-        coloredRanges,
-        setColoredRanges,
-        selectedLegendType,
-        rangeSelection,
-        setRangeSelection,
-        legendItems,
-        isDateInBasePeriod,
-        periodIndex
-    );
-    if (newSelectedType !== null) {
-      setSelectedLegendType(newSelectedType);
-    }
-  };
-
-  const groupMonthsByPeriod = (months: { name: string; year: number; days: { day: number | null; periods: number[] }[] }[]) => {
-    const periodGroups: Record<number, typeof months> = {};
-    months.forEach((month) => {
-      month.days.forEach((day) => {
-        day.periods.forEach((periodIndex) => {
-          if (!periodGroups[periodIndex]) periodGroups[periodIndex] = [];
-          if (!periodGroups[periodIndex].includes(month)) periodGroups[periodIndex].push(month);
-        });
-      });
-    });
-    return periodGroups;
-  };
-
-  const memoizedCalendarData = useMemo(() => generateCalendarData(validPeriods), [validPeriods]);
-
-  const periodGroups = useMemo(() => {
-    if (!memoizedCalendarData.hasData) return {};
-    const groups = groupMonthsByPeriod(memoizedCalendarData.months);
-    return Object.fromEntries(
-        Object.entries(groups).filter(([key]) => parseInt(key) < periods.length)
-    );
-  }, [memoizedCalendarData, periods.length]);
+    showPopup,
+    validationResult,
+  } = useCalendarPageLogic();
 
   return (
       <div className="max-w-full mx-auto p-4 text-center relative bg-gray-900 min-h-screen text-gray-100">
+        {/* Personal info form */}
         <PersonalInfoForm
             personalInfo={personalInfo}
             handlePersonalInfoChange={handlePersonalInfoChange}
         />
+
         <h1 className="text-2xl font-bold mb-6">Wprowadź okresy</h1>
+
+        {/* Period inputs */}
         <PeriodInput
             periods={periods}
             displayPeriods={displayPeriods}
@@ -123,6 +50,7 @@ export default function Home() {
             addNewPeriod={addNewPeriod}
         />
 
+        {/* Calendar */}
         {memoizedCalendarData.hasData ? (
             <CalendarRenderer
                 periodGroups={periodGroups}
@@ -146,7 +74,11 @@ export default function Home() {
             </div>
         )}
 
-        <ErrorPopup show={showPopup && !validationResult.isValid} message={validationResult.errorMessage} />
+        {/* Error popup */}
+        <ErrorPopup
+            show={showPopup && !validationResult.isValid}
+            message={validationResult.errorMessage}
+        />
       </div>
   );
 }

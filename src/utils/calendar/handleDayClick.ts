@@ -42,7 +42,6 @@ export const handleDayClick = (
         const end = date;
         const [finalStart, finalEnd] = start <= end ? [start, end] : [end, start];
 
-        // ✅ Check if start and end are in the same base period
         const isStartInBase = isDateInBasePeriod(finalStart, periodIndex);
         const isEndInBase = isDateInBasePeriod(finalEnd, periodIndex);
         if (isStartInBase !== isEndInBase) {
