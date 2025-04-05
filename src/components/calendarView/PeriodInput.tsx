@@ -68,7 +68,7 @@ const PeriodRow: FC<PeriodRowProps> = ({ start, end, onChange, onDelete, isDelet
 
             <button
                 onClick={onDelete}
-                disabled={!isDeletable}
+                disabled={Boolean(!isDeletable)}
                 className={`text-white rounded-xs w-8 h-8 flex items-center justify-center text-xs font-bold ml-1 transition-all
                 ${!isDeletable ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'}`}
             >

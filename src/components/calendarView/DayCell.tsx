@@ -60,9 +60,18 @@ const DayCell: React.FC<DayCellProps> = ({
         const [dayStart, monthStart, yearStart] = coloredRange.start.split(separator).map(Number);
         const rangeStart = new Date(yearStart, monthStart - 1, dayStart);
 
-        const diffInMs = date.getTime() - rangeStart.getTime();
-        const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-        rangeIndex = diffInDays >= 0 ? diffInDays + 1 : null;
+        if (date >= rangeStart) {
+            let count = 0;
+            const current = new Date(rangeStart);
+            while (current <= date) {
+                const dayOfWeek = current.getDay();
+                if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                    count++;
+                }
+                current.setDate(current.getDate() + 1);
+            }
+            rangeIndex = count;
+        }
     }
 
     return (
@@ -73,7 +82,7 @@ const DayCell: React.FC<DayCellProps> = ({
             {day && (
                 <div className="flex flex-col items-center leading-tight">
                     <span className={textClass}>{day}</span>
-                    {rangeIndex && (
+                    {rangeIndex && !isWeekend && !isHoliday && (
                         <span className="text-[10px] text-white/80 leading-none">#{rangeIndex}</span>
                     )}
                 </div>

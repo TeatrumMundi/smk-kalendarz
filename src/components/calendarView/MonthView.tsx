@@ -39,16 +39,18 @@ const MonthView: React.FC<MonthViewProps> = ({
         "lipiec", "sierpień", "wrzesień", "październik", "listopad", "grudzień"
     ].indexOf(month.name.toLowerCase());
 
-    const startOfMonth = new Date(month.year, monthNumber, 1);
-    const endOfMonth = new Date(month.year, monthNumber + 1, 0);
-    const workingDaysInMonth = calculateWorkingDaysInRange(startOfMonth, endOfMonth);
+    const workingDaysInMonth = calculateWorkingDaysInRange(
+        new Date(month.year, monthNumber, 1),
+        new Date(month.year, monthNumber + 1, 0),
+        (date) => isDateInBasePeriod(date, periodIndex)
+    );
 
     return (
         <div className="rounded-xs shadow p-1.5 bg-gray-800 hover:shadow-lg transition-all">
             <h3 className="font-bold mb-2 text-gray-100">
                 {month.name} {month.year}
-                <span className="ml-2 text-sm text-blue-400 font-normal">
-                    ({workingDaysInMonth} dni roboczych)
+                <span className="ml-2 text-sm font-normal">
+                    (<span className="text-blue-400">{workingDaysInMonth}</span> dni roboczych)
                 </span>
             </h3>
             <div className="grid grid-cols-7 gap-1">
