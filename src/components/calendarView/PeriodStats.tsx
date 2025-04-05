@@ -1,51 +1,14 @@
-﻿import { useEffect } from 'react';
-import { getWorkingDaysInRange } from '@/utils/helpers/getWorkingDaysInRange';
-import { CopyStatsButton } from "@/components/buttons/CopyStatsButton";
+﻿import { CopyStatsButton } from "@/components/buttons/CopyStatsButton";
 import { ChevronsRight } from "lucide-react";
 import {formatStatsForClipboard, groupAndSummarizeRanges} from "@/utils/helpers/calendarLogic";
+import {PeriodStatsProps} from "@/types/Period";
 
-interface ColoredRange {
-    start: string;
-    end: string;
-    type: string;
-    color: string;
-    label?: string;
-}
-
-interface PeriodStatsProps {
-    coloredRanges: ColoredRange[];
-    periodIndex: string;
-    periods: Array<{ start: string; end: string; }>;
-    selectedType?: string | null;
-    onSelectType: (type: string | null) => void;
-}
-
-export const PeriodStats = ({
-                                coloredRanges,
-                                periodIndex,
-                                periods,
-                                selectedType,
-                                onSelectType
+export const PeriodStats = ({coloredRanges, periodIndex, periods
                             }: PeriodStatsProps) => {
-
-    useEffect(() => {
-        console.log("Aktualne coloredRanges:", coloredRanges);
-    }, [coloredRanges]);
 
     const period = periods[parseInt(periodIndex)];
     const { grouped, totalWorkingDays, coloredRangeDays, basicPeriodDays } =
         groupAndSummarizeRanges(coloredRanges, period.start, period.end);
-
-    console.log("grouped", grouped);
-    console.log("coloredRanges", coloredRanges);
-
-    const handleLegendClick = (type: string) => {
-        if (selectedType === type) {
-            onSelectType(null);
-        } else {
-            onSelectType(type);
-        }
-    };
 
     return (
         <div className="mt-4 p-3 bg-gray-800 rounded-xs shadow-lg">
@@ -66,16 +29,14 @@ export const PeriodStats = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {Object.entries(grouped).map(([type, ranges]) => {
-                    const isSelected = selectedType === type;
                     const typeWorkingDays = ranges.reduce((sum, range) =>
-                        sum + getWorkingDaysInRange(range.start, range.end), 0
+                        sum + (range.workingDays ?? 0), 0
                     );
 
                     return (
                         <div
                             key={type}
-                            className={`p-2 rounded-xs cursor-pointer transition-colors duration-200 border border-blue-900 ${isSelected ? 'bg-indigo-600' : 'hover:bg-indigo-600/70'}`}
-                            onClick={() => handleLegendClick(type)}
+                            className={`p-2 rounded-xs border border-blue-900`}
                         >
                             <div className="flex items-start space-x-3">
                                 <div className={`w-4 h-4 mt-1 ${ranges[0].color} rounded-xs shadow-sm`}></div>
@@ -86,7 +47,7 @@ export const PeriodStats = ({
                                             const rangeText = range.start === range.end
                                                 ? range.start
                                                 : `${range.start} - ${range.end}`;
-                                            const days = getWorkingDaysInRange(range.start, range.end);
+                                            const days = range.workingDays;
                                             return (
                                                 <li key={i} className="flex items-start gap-1">
                                                     <ChevronsRight size={14} className="text-green-400 mt-0.5 shrink-0" />

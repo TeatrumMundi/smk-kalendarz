@@ -1,20 +1,13 @@
 ﻿import React from "react";
-import { CalendarMonth } from "./CalendarRenderer";
-import { isPolishHoliday } from "@/utils/helpers/polishHolidays";
-import { ColoredRange } from "@/types/Period";
+import { MonthViewProps } from "@/types/Period";
 import DayCell from "@/components/calendarView/DayCell";
-import { parseDateString, isSameDate } from "@/utils/helpers/dateHelpers";
-import {getWorkingDaysInRange} from "@/utils/helpers/getWorkingDaysInRange";
+import {getWorkingDaysInRange, isPolishHoliday, isSameDate, parseDateString} from "@/utils/helpers";
 
-interface MonthViewProps {
-    month: CalendarMonth;
-    periodIndex: string;
-    selectedLegendType: string | null;
-    isDateInColoredRange: (date: Date, month: number, year: number) => ColoredRange | null;
-    isDateInBasePeriod: (date: Date, periodIndex: string) => boolean;
-    handleDayClick: (date: Date, periodIndex: string) => void;
-    rangeSelection: { start: Date | null };
-}
+const DAYS_LABELS = ["PN", "WT", "ŚR", "CZ", "PT", "SB", "ND"];
+const MONTHS = [
+    "styczeń", "luty", "marzec", "kwiecień", "maj", "czerwiec",
+    "lipiec", "sierpień", "wrzesień", "październik", "listopad", "grudzień"
+];
 
 const MonthView: React.FC<MonthViewProps> = ({
                                                  month,
@@ -25,10 +18,7 @@ const MonthView: React.FC<MonthViewProps> = ({
                                                  handleDayClick,
                                                  rangeSelection
                                              }) => {
-    const monthNumber = [
-        "styczeń", "luty", "marzec", "kwiecień", "maj", "czerwiec",
-        "lipiec", "sierpień", "wrzesień", "październik", "listopad", "grudzień"
-    ].indexOf(month.name.toLowerCase());
+    const monthNumber = MONTHS.indexOf(month.name.toLowerCase());
 
     const workingDaysInMonth = getWorkingDaysInRange(
         new Date(month.year, monthNumber, 1),
@@ -41,33 +31,29 @@ const MonthView: React.FC<MonthViewProps> = ({
             <h3 className="font-bold mb-2 text-gray-100">
                 {month.name} {month.year}
                 <span className="ml-2 text-sm font-normal">
-                    (<span className="text-blue-400">{workingDaysInMonth}</span> dni roboczych)
-                </span>
+          (<span className="text-blue-400">{workingDaysInMonth}</span> dni roboczych)
+        </span>
             </h3>
+
             <div className="grid grid-cols-7 gap-1">
-                {["PN", "WT", "ŚR", "CZ", "PT", "SB", "ND"].map((day, i) => (
+                {DAYS_LABELS.map((day, i) => (
                     <div key={i} className="text-xs font-medium text-gray-400 text-center">
                         {day}
                     </div>
                 ))}
-                {month.days.map((day, dayIndex) => {
-                    const currentDate = day.day
-                        ? new Date(month.year, monthNumber, day.day)
-                        : null;
-                    const isWeekend = dayIndex % 7 >= 5;
-                    const isHoliday = currentDate ? isPolishHoliday(currentDate) : false;
-                    const coloredRange = currentDate
-                        ? isDateInColoredRange(currentDate, monthNumber, month.year)
-                        : null;
-                    const isInBasePeriod = currentDate
-                        ? isDateInBasePeriod(currentDate, periodIndex)
-                        : false;
-                    const isSelected =
-                        rangeSelection.start &&
-                        currentDate?.getTime() === rangeSelection.start.getTime();
 
-                    const rangeStart = coloredRange && currentDate && isSameDate(currentDate, parseDateString(coloredRange.start));
-                    const rangeEnd = coloredRange && currentDate && isSameDate(currentDate, parseDateString(coloredRange.end));
+                {month.days.map((day, dayIndex) => {
+                    if (!day.day) return <div key={dayIndex} />;
+
+                    const currentDate = new Date(month.year, monthNumber, day.day);
+                    const isWeekend = dayIndex % 7 >= 5;
+                    const isHoliday = isPolishHoliday(currentDate);
+                    const isInBasePeriod = isDateInBasePeriod(currentDate, periodIndex);
+                    const coloredRange = isDateInColoredRange(currentDate, monthNumber, month.year);
+
+                    const isSelected = !!rangeSelection.start && isSameDate(currentDate, rangeSelection.start);
+                    const rangeStart = coloredRange && isSameDate(currentDate, parseDateString(coloredRange.start));
+                    const rangeEnd = coloredRange && isSameDate(currentDate, parseDateString(coloredRange.end));
 
                     return (
                         <DayCell
@@ -78,9 +64,9 @@ const MonthView: React.FC<MonthViewProps> = ({
                             isHoliday={isHoliday}
                             isInBasePeriod={isInBasePeriod}
                             coloredRange={coloredRange}
-                            isSelected={!!isSelected}
+                            isSelected={isSelected}
                             selectedLegendType={selectedLegendType}
-                            onClick={() => currentDate && handleDayClick(currentDate, periodIndex)}
+                            onClick={() => handleDayClick(currentDate, periodIndex)}
                             rangeStart={!!rangeStart}
                             rangeEnd={!!rangeEnd}
                         />

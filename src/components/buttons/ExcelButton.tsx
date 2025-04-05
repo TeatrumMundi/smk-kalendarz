@@ -1,5 +1,5 @@
 ﻿import React from 'react';
-import { exportToExcel } from '@/utils/exportUtility/exportToExcel';
+import { exportToExcel } from '@/utils/exportUtility/excelExport/exportToExcel';
 import { ColoredRange } from '@/types/Period';
 
 interface ExportExcelButtonProps {

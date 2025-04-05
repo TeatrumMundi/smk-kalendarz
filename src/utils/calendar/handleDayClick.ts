@@ -2,6 +2,8 @@
 import { isDateInRange } from "@/utils/helpers/dateHelpers";
 import { isPolishHoliday } from "@/utils/helpers/polishHolidays";
 import React from "react";
+import {getCalendarDaysInRange} from "@/utils/helpers/getCalendarDaysInRange";
+import {getWorkingDaysInRange} from "@/utils/helpers/getWorkingDaysInRange";
 
 /**
  * Represents the current selection range for coloring calendar days.
@@ -33,7 +35,7 @@ interface ModalDataSetter {
  * - starts a new range selection
  * - finalizes the range selection and adds one or multiple colored ranges
  * - removes an existing range if clicked on one
- * - optionally prompts for a label if the type requires it (e.g. "Staże")
+ * - optionally prompt for a label if the type requires it (e.g. "Staże")
  *
  * @param date - The clicked calendar date
  * @param coloredRanges - List of existing colored ranges
@@ -125,6 +127,8 @@ export const handleDayClick = (
                     end: formatDate(segmentEnd),
                     type: selectedLegendType,
                     color: selectedLegendColor,
+                    totalDays: getCalendarDaysInRange(segmentStart, segmentEnd),
+                    workingDays: getWorkingDaysInRange(segmentStart, segmentEnd),
                     ...(label ? { label } : {})
                 });
 
@@ -141,6 +145,8 @@ export const handleDayClick = (
                 end: formatDate(finalEnd),
                 type: selectedLegendType,
                 color: selectedLegendColor,
+                totalDays: getCalendarDaysInRange(segmentStart, finalEnd),
+                workingDays: getWorkingDaysInRange(segmentStart, finalEnd),
                 ...(label ? { label } : {})
             });
         }
