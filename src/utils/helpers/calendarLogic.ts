@@ -111,15 +111,13 @@ export const formatStatsForClipboard = (
 
     const basicLine = `Okres podstawowy ilość dni: ${totalWorkingDays} - ${coloredRangeDays} = ${basicPeriodDays}`;
 
-    const lines = Object.entries(grouped).flatMap(([type, ranges]) =>
-        ranges.map((range) => {
-            const label = range.label ? ` (${range.label})` : "";
-            const dateRange =
-                range.start === range.end ? range.start : `${range.start}-${range.end}`;
-            const days = getWorkingDaysInRange(range.start, range.end);
-            return `${type}${label}: ${dateRange} - ${days} dni roboczych`;
-        })
-    );
+    const lines = Object.entries(grouped).map(([type, ranges]) => {
+        const totalDays = ranges.reduce((sum, r) => sum + (r.workingDays ?? 0), 0);
+        const rangeText = ranges
+            .map((r) => (r.start === r.end ? r.start : `${r.start}-${r.end}`))
+            .join(", ");
+        return `${type}: ${rangeText} = ${totalDays} dni roboczych`;
+    });
 
     return [basicLine, ...lines].join("\n");
 };
