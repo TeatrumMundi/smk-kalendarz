@@ -100,7 +100,9 @@ export default function CalendarRenderer({
                                     isDateInBasePeriod={isDateInBasePeriod}
                                     handleDayClick={(date) => handleDayClick(date, periodIndex)}
                                     rangeSelection={rangeSelection}
+                                    coloredRanges={coloredRanges}
                                 />
+
                             ))}
                         </div>
 

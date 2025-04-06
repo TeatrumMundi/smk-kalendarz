@@ -14,6 +14,8 @@ export interface ColoredRange {
 
     totalDays?: number;
     workingDays?: number;
+
+    special?: boolean;
 }
 
 export type PersonalInfo = {
@@ -46,4 +48,5 @@ export interface MonthViewProps {
     isDateInBasePeriod: (date: Date, periodIndex: string) => boolean;
     handleDayClick: (date: Date, periodIndex: string) => void;
     rangeSelection: { start: Date | null };
+    coloredRanges: ColoredRange[];
 }

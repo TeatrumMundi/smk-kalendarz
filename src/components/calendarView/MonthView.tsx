@@ -13,10 +13,10 @@ const MonthView: React.FC<MonthViewProps> = ({
                                                  month,
                                                  periodIndex,
                                                  selectedLegendType,
-                                                 isDateInColoredRange,
                                                  isDateInBasePeriod,
                                                  handleDayClick,
-                                                 rangeSelection
+                                                 rangeSelection,
+                                                 coloredRanges
                                              }) => {
     const monthNumber = MONTHS.indexOf(month.name.toLowerCase());
 
@@ -49,11 +49,14 @@ const MonthView: React.FC<MonthViewProps> = ({
                     const isWeekend = dayIndex % 7 >= 5;
                     const isHoliday = isPolishHoliday(currentDate);
                     const isInBasePeriod = isDateInBasePeriod(currentDate, periodIndex);
-                    const coloredRange = isDateInColoredRange(currentDate, monthNumber, month.year);
+                    const allRanges = coloredRanges.filter(r =>
+                        currentDate >= parseDateString(r.start) &&
+                        currentDate <= parseDateString(r.end)
+                    );
 
                     const isSelected = !!rangeSelection.start && isSameDate(currentDate, rangeSelection.start);
-                    const rangeStart = coloredRange && isSameDate(currentDate, parseDateString(coloredRange.start));
-                    const rangeEnd = coloredRange && isSameDate(currentDate, parseDateString(coloredRange.end));
+                    const rangeStart = allRanges.some(r => isSameDate(currentDate, parseDateString(r.start)));
+                    const rangeEnd = allRanges.some(r => isSameDate(currentDate, parseDateString(r.end)));
 
                     return (
                         <DayCell
@@ -63,12 +66,12 @@ const MonthView: React.FC<MonthViewProps> = ({
                             isWeekend={isWeekend}
                             isHoliday={isHoliday}
                             isInBasePeriod={isInBasePeriod}
-                            coloredRange={coloredRange}
+                            coloredRanges={allRanges}
                             isSelected={isSelected}
                             selectedLegendType={selectedLegendType}
                             onClick={() => handleDayClick(currentDate, periodIndex)}
-                            rangeStart={!!rangeStart}
-                            rangeEnd={!!rangeEnd}
+                            rangeStart={rangeStart}
+                            rangeEnd={rangeEnd}
                         />
                     );
                 })}
