@@ -6,7 +6,7 @@
  *
  * @param ws - Excel worksheet
  * @param totalWorkingDays - Total working days in the base period
- * @param workingDaysByType - Map of legend type → working day count
+ * @param workingDaysByType - Map of a legend type → working day count
  * @param allTypes - Full list of possible legend types (to include 0-values)
  */
 export const populateMainStats = (

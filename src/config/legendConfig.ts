@@ -7,5 +7,6 @@
     { color: 'bg-purple-500', label: 'Opieka nad dzieckiem' },
     { color: 'bg-yellow-500', label: 'Kwarantanna' },
     { color: 'bg-pink-400', label: 'Urlop macierzyński' },
-    { color: 'bg-green-600', label: 'Urlop wychowawczy' }
+    { color: 'bg-green-600', label: 'Urlop wychowawczy' },
+    { color: 'bg-indigo-400 border-indigo-900', label: 'Dyżur', special: true }
 ];
