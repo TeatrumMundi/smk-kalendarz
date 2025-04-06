@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.5",
+    "@react-pdf/renderer": "^4.3.0",
     "@types/node": "^22.13.10",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

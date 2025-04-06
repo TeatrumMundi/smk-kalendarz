@@ -112,7 +112,11 @@ export default function CalendarRenderer({
                             onSelectType={setSelectedLegendType}
                         />
 
-                        <PDFButton personalInfo={personalInfo} />
+                        <PDFButton
+                            personalInfo={personalInfo}
+                            coloredRanges={coloredRanges}
+                            periods={periods}
+                        />
                         <ExcelButton personalInfo={personalInfo} coloredRanges={coloredRanges} periods={periods} />
                         <ResetButton
                             setPeriods={setPeriods}
