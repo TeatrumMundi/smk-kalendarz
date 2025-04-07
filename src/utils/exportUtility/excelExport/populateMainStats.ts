@@ -1,20 +1,37 @@
 ﻿import ExcelJS from "exceljs";
+import {PersonalInfo} from "@/types/Period";
 
-/**
- * Populates worksheet with summary stats for working days.
- * Ensures all legend types are displayed, even if the count is 0.
- *
- * @param ws - Excel worksheet
- * @param totalWorkingDays - Total working days in the base period
- * @param workingDaysByType - Map of a legend type → working day count
- * @param allTypes - Full list of possible legend types (to include 0-values)
- */
-export const populateMainStats = (
+interface WorkingDaysByType {
+    [type: string]: number;
+}
+
+export const generateMainLeftSegment = (
     ws: ExcelJS.Worksheet,
+    personalInfo: PersonalInfo,
     totalWorkingDays: number,
-    workingDaysByType: Record<string, number>,
-    allTypes: string[] // <--- NEW
+    workingDaysByType: WorkingDaysByType
 ) => {
+    // 🔹 Kolumny
+    ws.columns = [
+        { header: '', key: 'type', width: 25 },
+        { header: '', key: 'days', width: 20 },
+        { header: '', key: 'extra', width: 20 },
+        { header: '', key: 'more', width: 20 }
+    ];
+
+    // 🔹 Nagłówek
+    ws.getCell('A1').value = `Statystyki dla: ${personalInfo.firstName} ${personalInfo.lastName}`;
+    ws.mergeCells('A1:D1');
+    ws.getCell('A1').font = { bold: true, size: 14 };
+    ws.getCell('A1').alignment = { horizontal: 'center' };
+
+    // 🔹 Nagłówki tabeli
+    ws.getCell('A2').value = 'Typ';
+    ws.getCell('B2').value = 'Liczba dni (roboczych)';
+    ws.getCell('A2').font = { bold: true };
+    ws.getCell('B2').font = { bold: true };
+
+    // 🔹 Statystyki ogólne
     ws.addRow(["Liczba dni roboczych", totalWorkingDays]);
     const baseRow = ws.rowCount;
     ws.getCell(`A${baseRow}`).font = { bold: true };
@@ -22,14 +39,14 @@ export const populateMainStats = (
 
     const coloredStartRow = baseRow + 1;
 
-    // 💡 Use allTypes instead of only keys from workingDaysByType
-    allTypes.sort().forEach(type => {
-        const value = workingDaysByType[type] ?? 0;
-        ws.addRow([type, value]);
+    // 🔹 Statystyki wg typów
+    Object.keys(workingDaysByType).sort().forEach(type => {
+        ws.addRow([type, workingDaysByType[type]]);
     });
 
     const coloredEndRow = ws.rowCount;
 
+    // 🔹 Oblicz okres podstawowy jako różnicę
     ws.addRow([
         "Okres podstawowy",
         { formula: `B${baseRow}-SUM(B${coloredStartRow}:B${coloredEndRow})` }

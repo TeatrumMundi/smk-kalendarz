@@ -4,29 +4,16 @@ import {
     formatStatsForClipboard,
     groupAndSummarizeRanges
 } from "@/utils/helpers/calendarLogic";
-import { PeriodStatsProps } from "@/types/Period";
+import {ColoredRange, Period, PeriodStatsProps} from "@/types/Period";
 
 export const PeriodStats = ({ coloredRanges, periodIndex, periods }: PeriodStatsProps) => {
-    const period = periods[parseInt(periodIndex)];
+    const period: Period = periods[parseInt(periodIndex)];
 
-    const normalRanges = coloredRanges.filter(r => !r.special);
-    const specialRanges = coloredRanges.filter(r => r.special);
+    const normalRanges: ColoredRange[] = coloredRanges.filter(r => !r.special);
+    const {grouped: specialGrouped} = groupAndSummarizeRanges(coloredRanges.filter(r => r.special), period.start, period.end);
+    const {grouped: normalGrouped, totalWorkingDays, coloredRangeDays, basicPeriodDays} = groupAndSummarizeRanges(normalRanges, period.start, period.end);
 
-    const {
-        grouped: normalGrouped,
-        totalWorkingDays,
-        coloredRangeDays,
-        basicPeriodDays
-    } = groupAndSummarizeRanges(normalRanges, period.start, period.end);
-
-    const grouped = {
-        ...normalGrouped,
-        ...specialRanges.reduce((acc, range) => {
-            if (!acc[range.type]) acc[range.type] = [];
-            acc[range.type].push(range);
-            return acc;
-        }, {} as typeof normalGrouped)
-    };
+    const grouped = {...normalGrouped, ...specialGrouped};
 
     return (
         <div className="mt-4 p-3 bg-gray-800 rounded-xs shadow-lg">

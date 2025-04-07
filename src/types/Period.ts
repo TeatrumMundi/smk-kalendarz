@@ -11,10 +11,15 @@ export interface ColoredRange {
     type: string;
     color: string;
     label?: string;
+    special?: boolean;
 
     totalDays?: number;
     workingDays?: number;
+}
 
+export interface LegendItem {
+    label: string;
+    color: string;
     special?: boolean;
 }
 
@@ -35,7 +40,7 @@ export type DateInput = string | Date;
 export interface PeriodStatsProps {
     coloredRanges: ColoredRange[];
     periodIndex: string;
-    periods: Array<{ start: string; end: string; }>;
+    periods: Period[];
     selectedType?: string | null;
     onSelectType: (type: string | null) => void;
 }

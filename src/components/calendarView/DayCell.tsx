@@ -31,7 +31,11 @@ const DayCell: React.FC<DayCellProps> = ({
                                              rangeStart,
                                              rangeEnd,
                                          }) => {
-    const isClickable = !!date && isInBasePeriod && !isWeekend && !isHoliday;
+    const isDyzur = selectedLegendType === "Dyżur";
+    const isRegularClickable = !!date && isInBasePeriod && !isWeekend && !isHoliday;
+    const isDyzurClickable = !!date && isInBasePeriod && isDyzur;
+
+    const isClickable: boolean = isRegularClickable || isDyzurClickable;
 
     // 🟦 Główna warstwa (np. Urlop, Staż)
     const mainRange = coloredRanges.find(r => !r.special);
@@ -48,20 +52,20 @@ const DayCell: React.FC<DayCellProps> = ({
     const baseColor = mainRange?.color ?? "";
 
     const classes = clsx(
-        "h-8 text-md border p-0.5 rounded-xs flex justify-center items-center transition-all",
-        isWeekend && "bg-red-900 cursor-not-allowed",
-        isHoliday && "bg-orange-900 cursor-not-allowed",
+        "h-8 text-md border p-0.5 rounded-xs flex justify-center items-center transition-all transition-colors duration-600",
+        isWeekend && !isDyzur && "bg-red-900 cursor-not-allowed",
+        isHoliday && !isDyzur && "bg-orange-900 cursor-not-allowed",
         !isInBasePeriod && "bg-gray-600 cursor-not-allowed",
 
         // Kolor głównego zakresu
         baseColor && !isWeekend && !isHoliday && `${baseColor} cursor-pointer hover:opacity-50`,
 
-        // Efekt przy wybranej legendzie
-        isInBasePeriod && selectedLegendType && !isWeekend && !isHoliday && "cursor-pointer hover:opacity-50",
+        // Efekt przy wybranej legendzie (także dla Dyżurów na weekendach/świętach)
+        isInBasePeriod && selectedLegendType && (isDyzur || (!isWeekend && !isHoliday)) && "cursor-pointer hover:opacity-50",
 
         isSelected && "bg-gray-600",
-        rangeStart && "rounded-l-full",
-        rangeEnd && "rounded-r-full",
+        rangeStart && !specialRange && "rounded-l-full",
+        rangeEnd && !specialRange && "rounded-r-full",
 
         // Pierścień dla specjalnych zakresów
         specialRange && "ring-2 ring-indigo-500"

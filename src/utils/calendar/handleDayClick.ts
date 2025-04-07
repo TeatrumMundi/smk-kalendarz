@@ -1,4 +1,4 @@
-﻿import { ColoredRange } from "@/types/Period";
+﻿import {ColoredRange, LegendItem} from "@/types/Period";
 import { isDateInRange } from "@/utils/helpers/dateHelpers";
 import { isPolishHoliday } from "@/utils/helpers/polishHolidays";
 import { getCalendarDaysInRange } from "@/utils/helpers/getCalendarDaysInRange";
@@ -20,13 +20,6 @@ interface ModalDataSetter {
         onCancel: () => void;
     } | null): void;
 }
-
-interface LegendItem {
-    color: string;
-    label: string;
-    special?: boolean;
-}
-
 export const handleDayClick = (
     date: Date,
     coloredRanges: ColoredRange[],
@@ -41,29 +34,82 @@ export const handleDayClick = (
 ): string | null => {
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     const isHoliday = isPolishHoliday(date);
-    if (isWeekend || isHoliday) return selectedLegendType;
+    const selectedLegend = legendItems.find(item => item.label === selectedLegendType);
+    const isSpecial = selectedLegend?.special ?? false;
 
-    const existingRangeIndex = coloredRanges.findIndex(range => isDateInRange(date, range));
-    if (existingRangeIndex !== -1 && !rangeSelection.start) {
-        const newRanges = [...coloredRanges];
-        newRanges.splice(existingRangeIndex, 1);
-        setColoredRanges(newRanges);
-        return selectedLegendType;
-    }
+    if ((isWeekend || isHoliday) && !isSpecial) return selectedLegendType;
 
     if (!selectedLegendType) return null;
 
+    const selectedLegendColor = selectedLegend?.color || "";
+    const shouldAskForLabel = selectedLegendType === "Staże" || selectedLegendType === "Kursy";
+    const formattedDate = date.toLocaleDateString("pl", { day: "2-digit", month: "2-digit", year: "numeric" });
+
+    // 🔴 Handle special one-day ranges (e.g., Dyżur)
+    if (isSpecial) {
+        const exists = coloredRanges.some(
+            r => r.start === formattedDate && r.end === formattedDate && r.type === selectedLegendType && r.special
+        );
+
+        if (exists) {
+            // If already exists, remove it
+            setColoredRanges(prev =>
+                prev.filter(r => !(r.start === formattedDate && r.end === formattedDate && r.type === selectedLegendType && r.special))
+            );
+        } else {
+            // Else add a new one-day range
+            const newRange: ColoredRange = {
+                start: formattedDate,
+                end: formattedDate,
+                type: selectedLegendType,
+                color: selectedLegendColor,
+                special: true,
+                totalDays: 1,
+                workingDays: isWeekend || isHoliday ? 0 : 1,
+            };
+            setColoredRanges(prev => [...prev, newRange]);
+        }
+
+        return selectedLegendType;
+    }
+
+    // 🧹 Handle clicking on an existing range
+    const existingRangeIndex = coloredRanges.findIndex(r => isDateInRange(date, r));
+    const existingRange = existingRangeIndex !== -1 ? coloredRanges[existingRangeIndex] : null;
+
+    if (existingRange && !rangeSelection.start) {
+        if (existingRange.special) {
+            // Special range can only be removed if matching type is selected
+            const isSameType = existingRange.type === selectedLegendType;
+            if (isSameType) {
+                const updated = [...coloredRanges];
+                updated.splice(existingRangeIndex, 1);
+                setColoredRanges(updated);
+            }
+            return selectedLegendType;
+        }
+
+        // For normal ranges — always allow deletion
+        const updated = [...coloredRanges];
+        updated.splice(existingRangeIndex, 1);
+        setColoredRanges(updated);
+        return selectedLegendType;
+    }
+
+    // 🟢 Start selection
     if (!rangeSelection.start) {
         setRangeSelection({ start: date, end: null });
         return selectedLegendType;
     }
 
+    // 🔵 Complete selection
     const start = rangeSelection.start;
     const end = date;
     const [finalStart, finalEnd] = start <= end ? [start, end] : [end, start];
 
     const isStartInBase = isDateInBasePeriod(finalStart, periodIndex);
     const isEndInBase = isDateInBasePeriod(finalEnd, periodIndex);
+
     if (isStartInBase !== isEndInBase) {
         alert("Nie można zaznaczyć zakresu, który przekracza granicę okresów podstawowych.");
         setRangeSelection({ start: null, end: null });
@@ -72,11 +118,6 @@ export const handleDayClick = (
 
     const formatDate = (d: Date) =>
         d.toLocaleDateString("pl", { day: "2-digit", month: "2-digit", year: "numeric" });
-
-    const selectedLegend = legendItems.find(item => item.label === selectedLegendType);
-    const selectedLegendColor = selectedLegend?.color || "";
-    const isSpecial = selectedLegend?.special ?? false;
-    const shouldAskForLabel = selectedLegendType === "Staże" || selectedLegendType === "Kursy";
 
     const onConfirm = (label?: string) => {
         const newRanges: ColoredRange[] = [];
@@ -87,7 +128,7 @@ export const handleDayClick = (
             const dateCopy = new Date(current);
             const isOverlapping = coloredRanges.some(range => isDateInRange(dateCopy, range));
 
-            if (!isOverlapping || isSpecial) {
+            if (!isOverlapping) {
                 if (!segmentStart) segmentStart = new Date(dateCopy);
             } else if (segmentStart) {
                 const segmentEnd = new Date(dateCopy);
@@ -98,7 +139,7 @@ export const handleDayClick = (
                     end: formatDate(segmentEnd),
                     type: selectedLegendType,
                     color: selectedLegendColor,
-                    special: isSpecial,
+                    special: false,
                     totalDays: getCalendarDaysInRange(segmentStart, segmentEnd),
                     workingDays: getWorkingDaysInRange(segmentStart, segmentEnd),
                     ...(label ? { label } : {})
@@ -116,7 +157,7 @@ export const handleDayClick = (
                 end: formatDate(finalEnd),
                 type: selectedLegendType,
                 color: selectedLegendColor,
-                special: isSpecial,
+                special: false,
                 totalDays: getCalendarDaysInRange(segmentStart, finalEnd),
                 workingDays: getWorkingDaysInRange(segmentStart, finalEnd),
                 ...(label ? { label } : {})
@@ -138,7 +179,6 @@ export const handleDayClick = (
             color: selectedLegendColor,
             onConfirm: (label) => {
                 onConfirm(label);
-                setRangeSelection({ start: null, end: null });
                 setModalData(null);
             },
             onCancel: () => {
