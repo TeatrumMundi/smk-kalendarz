@@ -9,33 +9,33 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@fontsource/inter": "^5.2.5",
-    "@react-pdf/renderer": "^4.3.0",
-    "@types/node": "^22.13.10",
+    "@fontsource/inter": "^5.2.8",
+    "@react-pdf/renderer": "^4.3.1",
+    "@types/node": "^22.18.13",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
-    "framer-motion": "^12.6.3",
+    "framer-motion": "^12.23.24",
     "html2canvas": "^1.4.1",
-    "jspdf": "^3.0.0",
+    "jspdf": "^3.0.3",
     "lucide-react": "^0.487.0",
-    "next": "^15.2.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "vitest": "^3.1.1"
+    "next": "^15.5.6",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "vitest": "^3.2.4"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
+    "@eslint/eslintrc": "^3.3.1",
+    "@tailwindcss/postcss": "^4.1.16",
     "@types/file-saver": "^2.0.7",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "@types/react-input-mask": "^3.0.6",
-    "eslint": "^9",
+    "eslint": "^9.38.0",
     "eslint-config-next": "15.2.2",
-    "jsdom": "^26.0.0",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "jsdom": "^26.1.0",
+    "tailwindcss": "^4.1.16",
+    "typescript": "^5.9.3"
   }
 }
